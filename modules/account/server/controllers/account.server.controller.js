@@ -37,7 +37,7 @@ exports.read = function (req, res) {
  */
 exports.readProfile = function (req, res) {
     // create safe profile object
-    var user = User.toObject(req.user, { 'hide': 'passwordUpdatedLast' });
+    var user = createUserReqObject(req.user);
 
     // send data
     res.json({ 'd': user });
@@ -129,7 +129,7 @@ exports.updateProfile = function (req, res) {
 /**
  * Updates password
  */
-exports.updatePassword = function (req, res, next) {
+exports.updatePassword = function (req, res) {
     // validate existence
     req.checkBody('oldPassword', 'Old password is required.').notEmpty();
     req.checkBody('newPassword', 'New password is required.').notEmpty();

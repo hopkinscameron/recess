@@ -1,0 +1,24 @@
+/* Begin Custom Fonts */
+/*
+@import url('https://fonts.googleapis.com/css?family=Marck+Script');
+@import url('https://fonts.googleapis.com/css?family=Audiowide');
+*/
+
+@font-face {
+    font-family: 'Audiowide';
+    src: url(#{$font-path}/Audiowide-Regular.ttf);
+}
+@font-face {
+    font-family: 'Marck Script';
+    src: url(#{$font-path}/MarckScript-Regular.ttf);
+}
+
+.font-fancy {
+    &--1 {
+        font-family: 'Marck Script', cursive;
+    }
+    &--2 {
+        font-family: 'Audiowide', cursive;
+    }
+}
+/* End Custom Fonts */

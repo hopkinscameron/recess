@@ -1,0 +1,14 @@
+/* Begin Custom Selects Styles */
+.select-dropdown {
+    width: 200px;
+}
+
+/* Begin Media Queries */
+/* If [device width] is less than or equal to 425px */
+@media (max-width: 425px) {
+    .select-dropdown {
+        width: 120px;
+    }
+}
+/* End Media Queries */
+/* End Custom Selects Styles */

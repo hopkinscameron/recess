@@ -66,3 +66,6 @@ public/dist/
 
 # session files
 modules/account/server/models/db/sessions/sessions.tingo
+
+# user database files
+db-copy

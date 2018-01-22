@@ -1,0 +1,94 @@
+/* Begin Custom Cards */
+.card {
+    &--transparent {
+        background-color: $transparent;
+        border-radius: 0;
+    }
+    &--light {
+        background-color: $light;
+    }
+    &--light-light {
+        background-color: $light-light;
+    }
+    &--dark {
+        background-color: $dark;
+
+        & .card-title {
+            color: $text-color;
+        }
+        & .card-text {
+            color: $text-color;
+        }
+    }
+    &--border {
+        &--none {
+            border: 0;
+        }
+        &--all {
+            border-style: solid;
+            border-width: $border-size-normal;
+        }
+        &--top {
+            border-style: solid;
+            border-top-width: $border-size-normal;
+        }
+        &--right {
+            border-style: solid;
+            border-right-width: $border-size-normal;
+        }
+        &--bottom {
+            border-style: solid;
+            border-bottom-width: $border-size-normal;
+        }
+        &--left {
+            border-style: solid;
+            border-left-width: $border-size-normal;
+        }
+        &--theme {
+            border-color: $brand-theme-main;
+        }
+        &--light-light {
+            border-color: $light-light;
+        }
+        &--quadruple {
+            border-width: $border-size-quadruple * 4;
+        }
+        &--remove-left {
+            border-left-width: 0;
+        }
+        &--remove-right {
+            border-right-width: 0;
+        }
+        &--remove-top {
+            border-top-width: 0;
+        }
+        &--remove-bottom {
+            border-bottom-width: 0;
+        }
+        &--color-light-light {
+            border-color: $light-light;
+        }
+        &--color-light {
+            border-color: $light;
+        }
+        &--color-primary {
+            border-color: $brand-theme-main;
+        }
+    }
+    &--radius {
+        &--none {
+            border-radius: 0;
+        }
+    }
+}
+.card-link {
+    color: $text-color;
+
+    &:hover {
+        color: $brand-theme-main;
+    }
+}
+.card-min-height {
+    min-height: calc(#{$body-min-height} - #{$body-header-height});
+}
+/* End Custom Cards */

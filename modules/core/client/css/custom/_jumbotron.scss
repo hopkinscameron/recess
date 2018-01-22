@@ -1,0 +1,20 @@
+/* Begin Custom Jumbotron */
+.jumbotron-color {
+    &--opacity {
+        &-white {
+            background-color: rgba(255, 255, 255, .75);
+        }
+        &-black {
+            background-color: rgba(0, 0, 0, .75);
+        }
+    }
+}
+.jumbotron-radius {
+    &--none {
+        border-radius: 0px;
+    }
+}
+.jumbotron-fixed-height {
+    height: $body-header-height;
+}
+/* End Custom Jumbotron */

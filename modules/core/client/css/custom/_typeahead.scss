@@ -1,0 +1,21 @@
+/* Begin Custom TypeAhead */
+.typeahead-custom .dropdown-menu {
+    & li {
+        padding: 0.25rem 1.5rem;
+
+        &:hover, &:focus {
+            color: $light-light!important;
+            background-color: $brand-theme-main;
+            cursor: pointer;
+        }
+        &.active, &:active {
+            color: $light-light!important;
+            background-color: $brand-theme-main;
+        }
+    }
+    & a {
+        color: $light-light;
+        text-decoration: none;
+    }
+}
+/* End Custom TypeAhead */

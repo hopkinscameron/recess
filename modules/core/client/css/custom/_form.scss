@@ -1,0 +1,47 @@
+/* Begin Custom Forms */
+.form-control {
+    &:focus {
+        border: 1px solid $brand-theme-main;
+    }
+}
+.form-character-count {
+    text-align: right;
+    font-size: x-small;
+    width: 100%;
+    margin: 0px;
+}
+.form-login {
+    min-height: $body-min-height;
+}
+.form-login-dropdown {
+    color: $light-light;
+
+    & a {
+        color: $light-light;
+    }
+}
+.input-radius {
+    &--top-left-none {
+        border-top-left-radius: 0;
+    }
+    &--top-right-none {
+        border-top-right-radius: 0;
+    }
+    &--bottom-left-none {
+        border-bottom-left-radius: 0;
+    }
+    &--bottom-right-none {
+        border-bottom-right-radius: 0;
+    }
+}
+/* Begin Media Queries */
+/* If [device width] is greater than or equal to 426px */
+@media (min-width: 426px) {
+    .form-login-dropdown {
+        width: 300px;
+        left: unset;
+        right: 0;
+    }
+}
+/* End Media Queries */
+/* End Custom Forms */

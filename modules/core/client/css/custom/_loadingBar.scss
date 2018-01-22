@@ -1,0 +1,9 @@
+/* Begin Custom Loading Bar */
+#loading-bar {
+    & .bar {
+        background: $dark-dark;
+        top: $navbar-bottom;
+        height: $loading-bar-height;
+    }
+}
+/* End Custom Loading Bar */

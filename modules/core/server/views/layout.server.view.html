@@ -30,21 +30,11 @@
         <!-- End Facebook Meta -->
 
         <!-- Begin Open General Meta -->
-        <meta property="og:site_name" content="{{title}}">
-        <meta property="og:title" content="{{title}}">
-        <meta property="og:description" content="{{description}}">
-        <meta property="og:url" content="{{url}}">
-        <meta property="og:image" content="{{logo}}">
+        <meta property="og:site_name" content="Recess">
+        <meta property="og:title" content="Recess">
+        <meta property="og:description" content="Recess">
         <meta property="og:type" content="website">
         <!-- End Open General Meta -->
-
-        <!-- Twitter Meta -->
-        <meta name="twitter:card" content="summary">
-        <meta name="twitter:site" content="{{twitterUsername}}">
-        <meta name="twitter:title" content="{{title}}">
-        <meta name="twitter:description" content="{{description}}">
-        <meta name="twitter:image" content="{{logo}}">
-        <!-- End Twitter Meta -->
         <!-- End Meta -->
 
         <!-- Begin Icons -->
@@ -92,19 +82,8 @@
     <!-- End Head -->
     <!-- Begin Body -->
     <body class="ng-cloak">
-        <!-- Begin Notification Banner -->
-        <div ng-include="'/modules/header/client/views/notification-banner.client.view.html'"></div>
-        <!-- End Notification Banner -->
-
-        <!-- Begin Header -->
-        <div ng-include="'/modules/header/client/views/header.client.view.html'"></div>
-        <!-- End Header -->
 
         {{{block "content"}}}
-
-        <!-- Begin Footer -->
-        <div ng-include="'/modules/footer/client/views/footer.client.view.html'"></div>
-        <!-- End Footer -->
 
         <!-- Begin No Script For Alerts -->
         <noscript>
@@ -118,20 +97,6 @@
             </div>
         </noscript>
         <!-- End No Script For Alerts -->
-
-        <!-- Begin Embedding The User Object -->
-        <script type="text/javascript">
-            var user = {{{ user }}};
-            var env = "{{ env }}";
-        </script>
-        <!-- End Embedding The User Object -->
-
-        <!-- Begin Embedding OWASP Config -->
-        <script type="text/javascript">
-            var sharedConfig = {{{ sharedConfig }}};
-            owaspPasswordStrengthTest.config(sharedConfig.owasp);
-        </script>
-        <!-- End Embedding OWASP Config -->
 
         {{#if livereload}}
         <!-- Begin Livereload script rendered -->

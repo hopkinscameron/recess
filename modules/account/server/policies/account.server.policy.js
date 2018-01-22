@@ -66,7 +66,7 @@ exports.invokeRolesPolicies = function () {
 };
 
 /**
- * Check if Dashboard policy allows
+ * Check if policy allows
  */
 exports.isAllowed = function (req, res, next) {
     // if user is authenticated in the session, carry on 

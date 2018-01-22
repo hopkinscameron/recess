@@ -1,0 +1,131 @@
+/* Begin Custom Images */
+.img {
+    &--xxs {
+        height: $img--xxs; 
+    }
+    &--xs {
+        height: $img--xs; 
+    }
+    &--sm {
+        height: $img--sm; 
+    }
+    &--md {
+        height: $img--md; 
+    }
+    &--lg {
+        height: $img--lg; 
+    }
+    &--xl {
+        height: $img--xl; 
+    }
+    &--xxl {
+        height: $img--xxl; 
+    }
+}
+.img-thumb {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.15) 100%);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+}
+.img-zoom {
+    transform: scale(1.0);
+    transition: $animation-delay--xs;
+
+    &--sm:hover {
+        transform: scale($scale--sm);
+    }
+    &--md:hover {
+        transform: scale($scale--md);
+    }
+    &--lg:hover {
+        transform: scale($scale--lg);
+    }
+}
+.img-round {
+    border-radius: $border-radius-base;
+
+    &--xs {
+        border-radius: $border-radius-xs;
+    }
+    &--sm {
+        border-radius: $border-radius-sm;
+    }
+    &--md {
+        border-radius: $border-radius-md;
+    }
+    &--lg {
+        border-radius: $border-radius-lg;
+    }
+    &--xl {
+        border-radius: $border-radius-xl;
+    }
+    &--circle {
+        border-radius: $border-radius-circle;
+    }
+}
+.img-border-size {
+    border-style: solid;
+    border-image-width: $border-size-base;
+
+    &--xxs {
+        border-image-width: $border-size-quarter;
+    }
+    &--xs {
+        border-image-width: $border-size-half;
+    }
+    &--sm {
+        border-image-width: $border-size-normal;
+    }
+    &--md {
+        border-image-width: $border-size-double;
+    }
+    &--lg {
+        border-image-width: $border-size-triple;
+    }
+    &--xl {
+        border-image-width: $border-size-quadruple;
+    }
+}
+.img-border-color {
+    &--light {
+        border-color: $light;
+    }
+    &--dark {
+        border-color: $dark;
+    }
+    &--theme {
+        border-color: $brand-theme-main;
+    }
+}
+.img-service-type {
+    width: $img--md; 
+    height: $img--md; 
+}
+.img-slider {
+    width: $img--xl; 
+    height: $img--lg; 
+}
+.img-personal {
+    width: $img--imdlg; 
+    height: $img--lg; 
+}
+
+/* Begin Media Queries */
+/* If [device width] is less than or equal to 425px */
+@media (max-width: 425px) { 
+    .img-service-type {
+        width: $img--ixssm; 
+        height: $img--ixssm; 
+    }
+    .img-slider {
+        width: $img--lg; 
+        height: $img--md; 
+    }
+    .img-personal {
+        width: $img--md; 
+        height: $img--md; 
+    }
+}
+/* End Media Queries */
+/* End Custom Images */

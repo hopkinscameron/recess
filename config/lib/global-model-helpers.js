@@ -169,7 +169,7 @@ exports.checkAndSetAcceptableValueForProperties = function (properties, model, o
         var arr = _.intersection(model[value].enum, obj[value]);
 
         // check if value is acceptable
-        if(_.indexOf(model[value].enum, obj[value]) == -1 && arr.length == 0) {
+        if(_.indexOf(model[value].enum, obj[value]) == -1 && arr.length == 0 && obj[value]) {
             // set the default
             obj[value] = model[value].default;
         }

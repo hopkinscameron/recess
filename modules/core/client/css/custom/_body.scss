@@ -1,0 +1,76 @@
+/* Begin Custom Body Styles */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+body {
+	font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: $text-color;
+    background-repeat: repeat;
+    /*
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    */
+    background-color: $light-light;
+	image-rendering: auto;
+  	image-rendering: crisp-edges;
+  	image-rendering: optimizeSpeed;
+  	image-rendering: optimize-contrast;
+    background-position: center top;
+    background-attachment: fixed;
+    background-position-y: $navbar-bottom;
+    margin: 0;
+	padding: 0;
+	border: 0;
+
+    &::after {
+        content: '';
+        background-color: $light-light;
+        background-repeat: repeat;
+        background-position: center top;
+        background-position-y: 0;
+        background-size: cover;
+        opacity: 0;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        position: absolute;
+        z-index: -1;   
+    }
+    & > #main {
+        min-height: $body-main-min-height;
+    }
+}
+.body-home {
+    padding-top: 0; 
+
+    & #loading-bar {
+        & .bar {
+            top: 0;
+        }
+    }
+}
+.body-error {
+    background-color: $brand-theme-main;
+    background-image: url('');
+}
+body {
+    &::-webkit-scrollbar
+	{
+		width: 12px;
+		background-color: $transparent;
+	}
+	&::-webkit-scrollbar-track {
+		-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
+		background-color: $dark;
+	}
+	&::-webkit-scrollbar-thumb
+	{
+		background-color: lighten($brand-theme-main, 15%);
+	}
+}
+/* End Custom Body Styles */

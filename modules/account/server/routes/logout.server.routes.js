@@ -11,5 +11,5 @@ var // the path
 module.exports = function (app) {
     // GET logs user out
 	// format /logout
-    app.route('/logout').get(logoutController.logout);
+    app.route('/api/logout').get(logoutController.logout);
 };

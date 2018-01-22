@@ -1,0 +1,36 @@
+<!-- Begin Download Page -->
+<section ng-controller="DownloadController">
+    <!-- Begin Container -->
+    <div class="container">
+        <!-- Begin Page Fully Loaded With Errors -->
+        <div id="pageShow" class="collapse" ng-if="pageFullyLoaded && error.error">
+            <div ng-controller="ErrorController" ng-init="init(error.title, error.status, error.message)">
+                <div ng-include="'/modules/core/client/views/error.client.view.html'"></div>
+            </div>
+        </div>
+        <!-- End Page Fully Loaded With Errors -->
+        <!-- Begin Page Fully Loaded With No Errors -->
+        <div id="pageShow" class="animated animation-delay--md fadeIn collapse" ng-if="pageFullyLoaded && !error.error">
+            <!-- Begin Body -->
+            <div class="card card--border--none card--radius--none card-body box-shadow--sm card-min-height">
+                <div class="row">
+                    <!-- Begin iOS -->
+                    <div id="download-header" class="col-md-6">
+                        <img src="/modules/core/client/img/icons/apple.png" class="img-fluid btn-cursor-pointer w-100" alt="apple" ng-click="downloadApp('apple')">
+                    </div>
+                    <!-- End iOS -->
+                    <!-- Begin Android -->
+                    <div id="download-header" class="col-md-6">
+                        <img src="/modules/core/client/img/icons/android.png" class="img-fluid btn-cursor-pointer w-100" alt="android" ng-click="downloadApp('android')">
+                    </div>
+                    <!-- End Android -->
+                </div>
+                <h1 class="text-black text-center mt-2">Hi there, select your platform to download Recess</h1>
+            </div>
+            <!-- End Body -->
+        </div>
+        <!-- End Page Fully Loaded With No Errors -->
+    </div>
+    <!-- End Container -->
+</section>
+<!-- End Download Page -->

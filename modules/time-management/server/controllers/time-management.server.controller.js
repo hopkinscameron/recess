@@ -17,10 +17,10 @@ var // the path
     timeManagementDetailsPath = path.join(__dirname, '../data/time-management.json'),
     // the file details for this view
     timeManagementDetails = {},
-    // short id generator
-    shortid = require('shortid'),
-    // the time management model
-    TimeManagement = require(path.resolve('./modules/time-management/server/models/model-time-management'));
+    // the Time Management model
+    TimeManagement = require(path.resolve('./modules/time-management/server/models/model-time-management')),
+    // the User model
+    User = require(path.resolve('./modules/account/server/models/model-user'));
 
 /**
  * Get the time off
@@ -36,7 +36,7 @@ exports.getTimeOff = function (req, res) {
         }
         else {
             // send data
-            res.json({ 'd': foundTimeManagement ? foundTimeManagement.dates : [] });
+            res.json({ 'd': foundTimeManagement ? foundTimeManagement.dates : {} });
         }
     });
 };
@@ -73,6 +73,10 @@ exports.addTimeOff = function (req, res) {
             res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
         }
         else {
+            // set the date and reason
+            const date = req.body.date;
+            const reason = req.body.reason;
+
             // find time management for user
             TimeManagement.findOne({ 'userId': req.user._id }, function(err, foundTimeManagement) {
                 // if error occurred
@@ -83,12 +87,12 @@ exports.addTimeOff = function (req, res) {
                 }
                 else if(foundTimeManagement) {
                     // check if this date already exists
-                    var pos = _.findIndex(foundTimeManagement.dates, { 'time': new Date(req.body.date).getTime() });
+                    var pos = _.indexOf(_.keys(foundTimeManagement.dates), date);
 
                     // if date exists
                     if(pos != -1) {
                         // update the reason
-                        foundTimeManagement.dates[pos].reason = req.body.reason;
+                        foundTimeManagement.dates[date] = reason;
 
                         // update the values
                         TimeManagement.update(foundTimeManagement, { 'dates': foundTimeManagement.dates }, function(err, updatedTimeManagement) {
@@ -110,15 +114,8 @@ exports.addTimeOff = function (req, res) {
                         });
                     }
                     else {
-                        // the new time management
-                        var newTM = {
-                            'date': formatDate(req.body.date),
-                            'time': new Date(req.body.date).getTime(),
-                            'reason': req.body.reason
-                        };
-
-                        // update 
-                        foundTimeManagement.dates.splice(_.sortedIndexBy(foundTimeManagement.dates, newTM, 'date'), 0, newTM);
+                        // update
+                        foundTimeManagement.dates[date] = reason;
 
                         // update the values
                         TimeManagement.update(foundTimeManagement, { 'dates': foundTimeManagement.dates }, function(err, updatedTimeManagement) {
@@ -144,12 +141,9 @@ exports.addTimeOff = function (req, res) {
                     // create the time management
                     var tm = {
                         'userId': req.user._id,
-                        'dates': [{
-                            'date': formatDate(req.body.date),
-                            'time': new Date(req.body.date).getTime(),
-                            'reason': req.body.reason
-                        }]
+                        'dates': {}
                     };
+                    tm.dates[date] = reason;
 
                     // save the time management
                     TimeManagement.save(tm, function(err, newSavedTM) {
@@ -180,8 +174,8 @@ exports.addTimeOff = function (req, res) {
  */
 exports.deleteTimeOff = function (req, res) {
     // validate existence
-    req.checkBody('date', 'Date is required.').notEmpty();
-    req.checkBody('date', 'Date provided is not a date.').isDate();
+    req.checkBody('date', 'Date is required in the format of \'yyyy-mm-dd\'.').notEmpty();
+    req.checkBody('date', 'Date provided is not a date. Date must be in the format of \'yyyy-mm-dd\'').isDate();
 
     // validate errors
     req.getValidationResult().then(function(errors) {
@@ -205,6 +199,9 @@ exports.deleteTimeOff = function (req, res) {
             res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
         }
         else {
+            // set the date
+            const date = req.body.date;
+
             // find time management for user
             TimeManagement.findOne({ 'userId': req.user._id }, function(err, foundTimeManagement) {
                 // if error occurred
@@ -215,12 +212,12 @@ exports.deleteTimeOff = function (req, res) {
                 }
                 else if(foundTimeManagement) {
                     // check if this date already exists
-                    var pos = _.findIndex(foundTimeManagement.dates, { 'time': new Date(req.body.date).getTime() });
+                    var pos = _.indexOf(_.keys(foundTimeManagement.dates), date);
                     
                     // if date exists
                     if(pos != -1) {
                         // remove position
-                        foundTimeManagement.dates.splice(pos, 1);
+                        delete foundTimeManagement.dates[date];
 
                         // update the values
                         TimeManagement.update(foundTimeManagement, { 'dates': foundTimeManagement.dates }, function(err, updatedTimeManagement) {
@@ -251,6 +248,25 @@ exports.deleteTimeOff = function (req, res) {
                     res.status(200).send({ title: errorHandler.getErrorTitle({ code: 200 }), message: 'Nothing to delete!' });
                 }
             });
+        }
+    });
+};
+
+/**
+ * Get's all users and their time off for today
+ */
+exports.getUsersTimeOff = function (req, res) {
+    // get all time
+    User.find({ }, function(err, foundUsers) {
+        // if error occurred
+        if (err) {
+            // send internal error
+            res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
+            console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+        }
+        else {
+            // get all users time management
+            var allUsers = getAllUsersTimeManagement(req, res, foundUsers);
         }
     });
 };
@@ -311,4 +327,45 @@ function formatDate(dateToFormat) {
     catch (e) {
         return dateToFormat;
     }
+};
+
+// gets all Users Time Management
+async function getAllUsersTimeManagement(req, res, users) {
+    // holds the new users data
+    var newUsers = [];
+
+    // go through each user
+    for(const user of users) {
+        // holds the final user object
+        var newUser = {
+            'fullName': user.displayName,
+            'dates': {}
+        };
+        newUser.dates = await getUserTimeManagement(user._id);
+        newUsers.push(newUser);
+    };
+
+    // send data
+    res.json({ 'd': newUsers });
+};
+
+// gets User's Time Management
+function getUserTimeManagement(userId) {
+    return new Promise(resolve => {
+        // find time management for user
+        TimeManagement.findOne({ 'userId': userId }, function(err, foundTimeManagement) {
+            // if error occurred
+            if (err) {
+                // send internal error
+                console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                reject('Could not get user\'s time management');
+            }
+            else if(foundTimeManagement) {
+                resolve(foundTimeManagement.dates);
+            }
+            else {
+                resolve({});
+            }
+        });
+    });
 };

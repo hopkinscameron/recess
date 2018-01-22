@@ -1,0 +1,36 @@
+/* Begin Custom Link Styles */
+a {
+	color: $text-color;
+	text-decoration: underline;
+
+	&.decoration--underline {
+		text-decoration: underline!important;
+
+		&:hover, &:active, &:focus {
+			color: $brand-theme-main!important;
+			text-decoration: none!important;
+		}
+	}
+	&.decoration--never {
+		text-decoration: none!important;
+
+		&.decorate--highlight:hover {
+			text-decoration: underline!important;
+		}
+	}
+	&:hover, &:active, &:focus {
+		color: $brand-theme-main;
+		text-decoration: none!important;
+	}
+	&.highlight--never {
+		&:hover, &:active, &:focus {
+			color: $text-color!important;
+		}
+	}
+	&.highlight--danger {
+		&:hover, &:active, &:focus {
+			color: $color-red-accent!important;
+		}
+	}
+}
+/* End Custom Link Styles */

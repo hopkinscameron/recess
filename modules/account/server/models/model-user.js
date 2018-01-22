@@ -67,6 +67,12 @@ var UserSchema = {
         unique: true,
         trim: true
     },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true
+    },
     password: {
         type: String,
         required: true
@@ -116,6 +122,20 @@ var trimmableSchemaProperties = helpers.getTrimmableProperties(UserSchema);
 exports.toObject = function(obj, options) {
     // return the obj
     return _.cloneDeep(helpers.toObject(obj, options));
+};
+
+/**
+ * Find
+ */
+exports.find = function(query, callback) {
+    // find
+    helpers.find(db, query, searchableSchemaProperties, function(err, objs) {
+        // if a callback
+        if(callback) {
+            // hit the callback
+            callback(err, _.cloneDeep(objs));
+        }
+    });
 };
 
 /**

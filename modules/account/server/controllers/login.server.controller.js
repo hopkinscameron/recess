@@ -48,6 +48,7 @@ exports.signUp = function (req, res, next) {
     req.checkBody('username', 'Username is required.').notEmpty();
     req.checkBody('firstName', 'First name is required.').notEmpty();
     req.checkBody('lastName', 'Last name is required.').notEmpty();
+    req.checkBody('email', 'Email is required.').notEmpty();
     req.checkBody('password', 'Password is required.').notEmpty();
     req.checkBody('password', `Please enter a passphrase or password with ${config.shared.owasp.minLength} or more characters, numbers, lowercase, uppercase, and special characters.`).isStrongPassword();
     req.checkBody('confirmedPassword', 'Confirmed password is required.').notEmpty();

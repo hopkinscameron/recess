@@ -1,0 +1,120 @@
+/* Begin Custom Text Utilities */
+.dont-break-out {
+    /* These are technically the same, but use both */
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+
+    -ms-word-break: break-all;
+    /* This is the dangerous one in WebKit, as it breaks things wherever */
+    word-break: break-all;
+    /* Instead use this non-standard one: */
+    word-break: break-word;
+
+    /* Adds a hyphen where the word breaks, if supported (No Blink)
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+     */
+}
+.divider {
+    position: relative;
+    cursor: default;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    height: 0;
+
+    &:before {
+        position: absolute;
+        content: "";
+        width: 100%;
+        height: 1.5px;
+    }
+    & > div {
+        position: relative;
+        background: $muted;
+        content: "";
+        height: 1.5px;
+        -webkit-box-flex: 1;
+        -ms-flex: 1;
+        flex: 1;
+        z-index: 1;
+    }
+    & > span {
+        position: relative;
+        line-height: 19px;
+        font-weight: 500;
+        padding: 0 10px;
+        z-index: 2;
+        border-radius: $border-radius-xl;
+    }
+}
+.limit-text {
+    max-height: 190px;
+    overflow: hidden;
+}
+.highlight-text {
+    font-weight: 900;
+    
+    &-background {
+        background-color: $brand-theme-main !important;
+    }
+    &-foreground {
+        color: $brand-theme-main !important;
+    }
+}
+.text-color {
+    color: $text-color !important;
+
+    &--theme-secondary {
+        color: $brand-theme-secondary !important;
+    }
+}
+
+/* Begin Media Queries */
+/* If [device width] is less than or equal to 425px */
+@media (max-width: 425px) {
+    .responsive-text {
+        &--xs:not(.responsive-text--dont-change-size) {
+            font-size: $font-size-sm * 0.85 * 0.85;
+        }
+        &--sm:not(.responsive-text--dont-change-size) {
+            font-size: $font-size-sm * 0.85;
+        }
+        &--md:not(.responsive-text--dont-change-size) {
+            font-size: $font-size-md * 0.85;
+        }
+        &--lg:not(.responsive-text--dont-change-size) {
+            font-size: $font-size-lg * 0.85;
+        }
+        &--xl:not(.responsive-text--dont-change-size) {
+            font-size: $font-size-xl * 0.85;
+        }
+    }
+}
+/* If [device width] is greater than or equal to 426px */
+@media (min-width: 426px) {
+    .responsive-text {
+        &--xs {
+            font-size: $font-size-sm * 0.85;
+        }
+        &--sm {
+            font-size: $font-size-sm;
+        }
+        &--md {
+            font-size: $font-size-md;
+        }
+        &--lg {
+            font-size: $font-size-lg;
+        }
+        &--xl {
+            font-size: $font-size-xl;
+        }
+    }
+}
+/* End Media Queries */
+/* End Custom Text Utilities */

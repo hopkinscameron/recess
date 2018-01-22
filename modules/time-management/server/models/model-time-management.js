@@ -37,8 +37,8 @@ var TimeManagementSchema = {
         type: String
     },
     dates: {
-        type: Array,
-        default: new Array()
+        type: Object,
+        default: {}
     }
 };
 
@@ -215,8 +215,8 @@ exports.update = function(query, updatedObj, callback) {
 
         // merge old data with new data
         _.mergeWith(obj, updatedObj, function (objValue, srcValue) {
-            // if array, replace array
-            if (_.isArray(objValue)) {
+            // if array or object, replace array or object
+            if (_.isArray(objValue) || _.isObject(objValue)) {
                 return srcValue;
             }
         });
