@@ -129,7 +129,7 @@ exports.toObject = function(obj, options) {
  */
 exports.find = function(query, callback) {
     // find
-    helpers.find(db, query, searchableSchemaProperties, function(err, objs) {
+    helpers.find(dbPath, db, query, searchableSchemaProperties, function(err, objs) {
         // if a callback
         if(callback) {
             // hit the callback
@@ -143,7 +143,7 @@ exports.find = function(query, callback) {
  */
 exports.findById = function(id, callback) {
     // find one
-    helpers.findById(db, id, function(err, obj) {
+    helpers.findById(dbPath, db, id, function(err, obj) {
         // if a callback
         if(callback) {
             // hit the callback
@@ -157,7 +157,7 @@ exports.findById = function(id, callback) {
  */
 exports.findOne = function(query, callback) {
     // find one
-    helpers.findOne(db, query, function(err, obj) {
+    helpers.findOne(dbPath, db, query, function(err, obj) {
         // if a callback
         if(callback) {
             // hit the callback
@@ -170,6 +170,9 @@ exports.findOne = function(query, callback) {
  * Save
  */
 exports.save = function(objToSave, callback) {
+    // update local db copy
+    db = _.cloneDeep(foundDb);
+
     // the object to return
     var obj = null;
     

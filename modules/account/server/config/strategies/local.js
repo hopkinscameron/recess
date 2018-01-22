@@ -41,7 +41,7 @@ module.exports = function () {
 
                 // check to see if theres already a user with that username
                 if (user) {
-                    return done(null, null, req.flash('signupMessage', 'That username is already taken.'));
+                    return done(null, null, 'That username is already taken.');
                 } 
                 else {
                     // create the user and set the user's local credentials
@@ -100,7 +100,7 @@ module.exports = function () {
             // if no user is found, return the message
             if (!user) {
                 // req.flash is the way to set flashdata using connect-flash
-                return done(null, false);
+                return done(null, false, 'User not found');
             }
 
             // compare equality

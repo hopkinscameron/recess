@@ -73,7 +73,7 @@ exports.toObject = function(obj, options) {
  */
 exports.findById = function(id, callback) {
     // find one
-    helpers.findById(db, id, function(err, obj) {
+    helpers.findById(dbPath, db, id, function(err, obj) {
         // if a callback
         if(callback) {
             // hit the callback
@@ -87,7 +87,7 @@ exports.findById = function(id, callback) {
  */
 exports.findOne = function(query, callback) {
     // find one
-    helpers.findOne(db, query, function(err, obj) {
+    helpers.findOne(dbPath, db, query, function(err, obj) {
         // if a callback
         if(callback) {
             // hit the callback

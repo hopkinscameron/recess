@@ -210,11 +210,7 @@ exports.updatePassword = function (req, res) {
                                         else if(updatedUser) {
                                             // create the safe user object
                                             var safeUserObj = createUserReqObject(updatedUser);
-
-                                            // set the updated object
-                                            var p = req.user.paymentInfo;
                                             req.user = safeUserObj;
-                                            req.user.paymentInfo = p;
 
                                             // return password changed
                                             res.json({ 'd': { title: errorHandler.getErrorTitle({ code: 200 }), message: errorHandler.getGenericErrorMessage({ code: 200 }) + ' Successful password change.' } });
@@ -234,6 +230,77 @@ exports.updatePassword = function (req, res) {
                     // send internal error
                     res.status(500).send({ error: true, title: errorHandler.getErrorTitle({ code: 500 }), message: errorHandler.getGenericErrorMessage({ code: 500 }) });
                     console.log(clc.error(`In ${path.basename(__filename)} \'changePassword\': ` + errorHandler.getGenericErrorMessage({ code: 500 }) + ' Couldn\'t find User.'));
+                }
+            });
+        }
+    });
+};
+
+/**
+ * Resets password
+ */
+exports.resetPassword = function (req, res) {
+    // validate existence
+    req.checkBody('username', 'Username is required.').notEmpty();
+    
+    // validate errors
+    req.getValidationResult().then(function(errors) {
+        // if any errors exists
+        if(!errors.isEmpty()) {
+            // holds all the errors in one text
+            var errorText = '';
+
+            // add all the errors
+            for(var x = 0; x < errors.array().length; x++) {
+                // if not the last error
+                if(x < errors.array().length - 1) {
+                    errorText += errors.array()[x].msg + '\r\n';
+                }
+                else {
+                    errorText += errors.array()[x].msg;
+                }
+            }
+
+            // send bad request
+            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+        } 
+        else {
+            // find user based on username
+            User.findOne({ 'username': req.body.username }, function(err, foundUser) {
+                // if error occurred occurred
+                if (err) {
+                    // return error
+                    return next(err);
+                }
+                // if user was found
+                else if(foundUser) {
+                    // create the updated values object
+                    var updatedValues = {
+                        'password': 'Pass@Word1'
+                    };
+
+                    // update user
+                    User.update(foundUser, updatedValues, function(err, updatedUser) {
+                        // if error occurred occurred
+                        if (err) {
+                            // send internal error
+                            res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
+                            console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                        }
+                        else if(updatedUser) {
+                            // return password reset
+                            res.json({ 'd': { title: errorHandler.getErrorTitle({ code: 200 }), message: errorHandler.getGenericErrorMessage({ code: 200 }) + ' Successful password reset.' } });
+                        }
+                        else {
+                            // send internal error
+                            res.status(500).send({ error: true, title: errorHandler.getErrorTitle({ code: 500 }), message: errorHandler.getGenericErrorMessage({ code: 500 }) });
+                            console.log(clc.error(`In ${path.basename(__filename)} \'resetPassword\': ` + errorHandler.getGenericErrorMessage({ code: 500 }) + ' Couldn\'t update User.'));
+                        }
+                    });
+                }
+                else {
+                    // return error
+                    res.json({ 'd': { error: true, title: errorHandler.getErrorTitle({ code: 200 }), message: `No user by the name of '${req.body.username}' was found.` } });
                 }
             });
         }

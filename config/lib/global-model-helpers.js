@@ -234,6 +234,19 @@ exports.trimArrayOfString = function (arr) {
 };
 
 /**
+ * Removes undefined members of object
+ */
+exports.removeUndefinedMembers = function(obj) {
+    // go through each option and remove
+    _.forEach(Object.keys(obj), function (value) {
+        // if undefined
+        if(obj[value] === undefined) {
+            delete obj[value];
+        }
+    });
+};
+
+/**
  * Converts to object
  */
 exports.toObject = function(obj, options) {
@@ -259,109 +272,144 @@ exports.toObject = function(obj, options) {
 };
 
 /**
- * Removes undefined members of object
- */
-exports.removeUndefinedMembers = function(obj) {
-    // go through each option and remove
-    _.forEach(Object.keys(obj), function (value) {
-        // if undefined
-        if(obj[value] === undefined) {
-            delete obj[value];
-        }
-    });
-};
-
-/**
  * Find
  */
-exports.find = function (db, query, searchableProperties, callback) {
-    // the array of objects to return
-    var objs = null;
-    
-    // the error to return
-    var err = null;
+exports.find = function (dbPath, db, query, searchableProperties, callback) {
+    // read from DB first
+    exports.readDB(dbPath, function(err, dbRead) {
+        // if error
+        if(err) {
+            // if a callback
+            if(callback) {
+                // hit the callback
+                callback(err);
+            }
+        }
+        else {
+            // copy db
+            db = _.cloneDeep(dbRead);
+            
+            // the array of objects to return
+            var objs = null;
+            
+            // the error to return
+            var err = null;
 
-    // the regular expression to test
-    var re = new RegExp();
+            // the regular expression to test
+            var re = new RegExp();
 
-    // if searching on text
-    if(query.$text && query.$text.$search) {
-        // get the search values
-        var searchValues = query.$text.$search.split(' ');
+            // if searching on text
+            if(query.$text && query.$text.$search) {
+                // get the search values
+                var searchValues = query.$text.$search.split(' ');
 
-        // create regular expression
-        re = new RegExp(searchValues.join('|'), 'gi');
-    }
+                // create regular expression
+                re = new RegExp(searchValues.join('|'), 'gi');
+            }
 
-    // if searchables exist
-    if(searchableProperties.length > 0) {
-        // find the object matching the query
-        objs = _.filter(db, function(o) {
-            // determines if a search query has been found
-            var found = false;
+            // if searchables exist
+            if(searchableProperties.length > 0) {
+                // find the object matching the query
+                objs = _.filter(db, function(o) {
+                    // determines if a search query has been found
+                    var found = false;
 
-            // loop over all keys
-            _.forEach(searchableProperties, function(value) {
-                // test the regex
-                if(re.test(o[value])) {
-                    found = true;
-                }
-            });
+                    // loop over all keys
+                    _.forEach(searchableProperties, function(value) {
+                        // test the regex
+                        if(re.test(o[value])) {
+                            found = true;
+                        }
+                    });
 
-            // return found
-            return found; 
-        });
-    }
-    else {
-        // find the object matching the query
-        objs = _.filter(db, query);
-    }
-    
-    // if a callback
-    if(callback) {
-        // hit the callback
-        callback(err, objs);
-    }
+                    // return found
+                    return found; 
+                });
+            }
+            else {
+                // find the object matching the query
+                objs = _.filter(db, query);
+            }
+
+            // if a callback
+            if(callback) {
+                // hit the callback
+                callback(err, objs);
+            }
+        }
+    }); 
 };
 
 /**
  * Find By Id
  */
-exports.findById = function (db, id, callback) {
-    // the object to return
-    var obj = null;
-    
-    // the error to return
-    var err = null;
+exports.findById = function (dbPath, db, id, callback) {
+    // read from DB first
+    exports.readDB(dbPath, function(err, dbRead) {
+        // if error
+        if(err) {
+            // if a callback
+            if(callback) {
+                // hit the callback
+                callback(err);
+            }
+        }
+        else {
+            // copy db
+            db = _.cloneDeep(dbRead);
 
-    // find the object matching the query
-    obj = _.find(db, { '_id': id }) || null;
+            // the object to return
+            var obj = null;
+            
+            // the error to return
+            var err = null;
 
-    // if a callback
-    if(callback) {
-        // hit the callback
-        callback(err, obj);
-    }
+            // find the object matching the query
+            obj = _.find(db, { '_id': id }) || null;
+
+            // if a callback
+            if(callback) {
+                // hit the callback
+                callback(err, obj);
+            }
+        }
+    });
 };
 
 /**
  * Find One
  */
-exports.findOne = function (db, query, callback) {
-    // the object to return
-    var obj = null;
-    
-    // the error to return
-    var err = null;
+exports.findOne = function (dbPath, db, query, callback) {
+    // read from DB first
+    exports.readDB(dbPath, function(err, dbRead) {
+        // if error
+        if(err) {
+            // if a callback
+            if(callback) {
+                // hit the callback
+                callback(err);
+            }
+        }
+        else {
+            // copy db
+            db = _.cloneDeep(dbRead);
 
-    // find the object matching the query
-    obj = _.find(db, query) || null;
+            // the object to return
+            var obj = null;
+            
+            // the error to return
+            var err = null;
 
-    // if a callback
-    if(callback) {
-        // hit the callback
-        callback(err, obj);
-    }
+            // find the object matching the query
+            obj = _.find(db, query) || null;
+
+            // if a callback
+            if(callback) {
+                // hit the callback
+                callback(err, obj);
+            }
+        }
+    });
 };
 
 /**
@@ -401,7 +449,9 @@ exports.remove = function(db, objToRemove, callback) {
  * Remove Multiple
  */
 exports.removeMultiple = function(db, objsToRemove, callback) {
+    // copy db
     var dbCopy = _.cloneDeep(db);
+
     // the array of objects to return
     var objs = [];
 

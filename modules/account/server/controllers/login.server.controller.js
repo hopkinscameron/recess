@@ -113,11 +113,10 @@ exports.login = function (req, res, next) {
         // if user is not authenticated 
         else if(!user && info) {
             // return not authenticated
-            res.json({ 'd': { error: true, title: 'Incorrect username/password.', message: 'Incorrect username/password.' } });
-            console.log(clc.error(errorHandler.getDetailedErrorMessage(info.message)));
+            res.json({ 'd': { error: true, title: info, message: info } });
         }
         // if user is not authenticated 
-        else if(!user) {
+        else if(!user && !info) {
             // return not authenticated
             res.json({ 'd': { error: true, title: 'Incorrect username/password.', message: 'Incorrect username/password.' } });
         }

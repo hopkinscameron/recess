@@ -32,4 +32,9 @@ module.exports = function (app) {
 	// format /api/change-password
     app.route('/api/account/change-password').all([accountPolicy.isAllowed, accountController.readDB])
     .post(accountController.updatePassword);
+
+    // POST resets specific user's password
+	// format /api/change-password
+    app.route('/api/account/reset-password').all([accountPolicy.isAdminAllowed, accountController.readDB])
+    .post(accountController.resetPassword);
 }
