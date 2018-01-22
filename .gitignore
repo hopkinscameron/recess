@@ -61,11 +61,11 @@ node_modules/
 *.log
 
 # build files
-build/
-public/dist/
+#build/
+#public/dist/
 
 # session files
-modules/account/server/models/db/sessions/sessions.tingo
+#modules/account/server/models/db/sessions/sessions.tingo
 
 # user database files
 db-copy
