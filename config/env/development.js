@@ -7,6 +7,19 @@ var // the default environment configuration
     defaultEnvConfig = require('./default');
 
 module.exports = {
+    db: {
+        uri: process.env.MLAB_MONGODB_DEV || 'mongodb://localhost:27017/recessDev',
+        options: {
+            user: '',
+            pass: '',
+            db: { 
+                native_parser: true 
+            },
+            poolSize: 5
+        },
+        // Enable mongoose debug mode
+        debug: process.env.MONGODB_DEBUG || false
+    },
     livereload: false,
     log: {
         // logging with Morgan - https://github.com/expressjs/morgan
@@ -42,5 +55,77 @@ module.exports = {
         mapsJavascript: {
             clientSecret: process.env.GOOGLE_MAPS_JAVASCRIPT_API_KEY
         }
+    },
+    seedDB: {
+        seed: process.env.MONGO_SEED === 'true',
+        options: {
+            logResults: process.env.MONGO_SEED_LOG_RESULTS !== 'false'
+        },
+        // Order of collections in configuration will determine order of seeding.
+        // i.e. given these settings, the User seeds will be complete before
+        // any other seed is performed.
+        collections: [
+            {
+                model: 'User',
+                docs: 
+                [
+                    {
+                        overwrite: false,
+                        data: {
+                            username: 'local-admin',
+                            email: 'admin@localhost.com',
+                            firstName: 'Admin',
+                            lastName: 'Local',
+                            roles: ['user', 'admin']
+                        }
+                    }, 
+                    {
+                        // Set to true to overwrite this document
+                        // when it already exists in the collection.
+                        // If set to false, or missing, the seed operation
+                        // will skip this document to avoid overwriting it.
+                        overwrite: false,
+                        data: {
+                            username: 'local-user',
+                            email: 'user@localhost.com',
+                            firstName: 'User',
+                            lastName: 'Local',
+                            roles: ['user']
+                        }
+                    }       
+                ]
+            },
+            {
+                model: 'TimeManagement',
+                options: {
+                    // Override log results setting at the
+                    // collection level.
+                    logResults: true
+                },
+                skip: {
+                    // Skip collection when this query returns results.
+                    // e.g. {}: Only seeds collection when it is empty.
+                    when: {} // Mongoose qualified query
+                },
+                docs: [
+                    {
+                        data: {
+                            dates: { 
+                                '2018-01-01': 'WFH',
+                                '2018-01-02': 'On Vacation',
+                                '2018-01-03': 'On Vacation',
+                                '2018-01-04': 'Out Sick',
+                                '2018-01-16': 'In Late',
+                                '2018-01-18': 'WFH',
+                                '2018-01-19': 'Out Early',
+                                '2018-01-24': 'Out Sick',
+                                '2018-01-30': 'In Late',
+                                '2018-01-31': 'Out Early'
+                            }
+                        }
+                    }
+                ]
+            }
+        ]
     }
 };

@@ -1,7 +1,7 @@
 ﻿In Progress
-    SAVE LOCAL COPY OF DBs ! DO NOT PUSH TO GITHUB
+
 Next (Immediate)
-    
+
 Future
 
 Done
@@ -11,3 +11,14 @@ Testing
 Browser Fixes
 
 Mobile Fixes
+
+
+
+Mongodb test stuff
+db.createUser({ user: "<username>", pwd: "<password>", roles: [ { role: "dbAdmin", db: "<db>" } ]})
+db.updateUser("<username>", { roles : [ { role: "dbOwner", db: "<db>" } ], pwd: "<password>"})
+./mongo --port 27017 -u "<username>" -p "<password>" --authenticationDatabase "<db>"
+db.changeUserPassword("<username>", "<newpassword>")
+db.updateUser("<username>", { roles : [ { role: "dbOwner", db: "<db>" } ], pwd: "<password>"})
+./mongod --auth --port 27017 --dbpath /data/db1
+./mongod --auth --port 27017

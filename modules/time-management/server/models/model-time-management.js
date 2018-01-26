@@ -8,242 +8,289 @@
 /**
  * Module dependencies
  */
-var // generate UUID's
-    uuidv1 = require('uuid/v1'),
-    // lodash
-    _ = require('lodash'),
+var // mongoose
+    mongoose = require('mongoose'),
+    // mongoose schema
+    Schema = mongoose.Schema,
+    // validator
+    validator = require('validator'),
     // the path
     path = require('path'),
-    // the helper functions
-    helpers = require(path.resolve('./config/lib/global-model-helpers')),
-    // the db
-    db = require('./db/time-management'),
-    // the db full path
-    dbPath = 'modules/time-management/server/models/db/time-management.json';
+    // lodash
+    _ = require('lodash'),
+    // the file system reader
+    fs = require('fs'),
+    // clc for console logging
+    clc = require(path.resolve('./config/lib/clc')),
+    // the path to the file details for this view
+    acceptableTMTypesPath = path.join(__dirname, '../data/acceptable-time-management-types.json'),
+    // the acceptable values for the dates
+    acceptableTMTypes = [];
 
 /**
  * Time Management Schema
  */ 
-var TimeManagementSchema = {
-    _id: {
-        type: String,
-        overwriteable: false
-    },
+var TimeManagementSchema = new Schema ({
     created: {
         type: Date,
-        overwriteable: false
+        default: Date.now
     },
-    userId: {
-        type: String
+    user: {
+        type: Schema.ObjectId,
+        ref: 'User',
+        required: [true, 'User is required']
     },
     dates: {
-        type: Object,
-        default: {}
+        type: [{
+            date: String,
+            types: Array
+        }],
+        default: new Array()
     }
-};
-
-// the required properties
-var requiredSchemaProperties = helpers.getRequiredProperties(TimeManagementSchema);
-
-// the non overwritable properties the user cannot self change
-var nonOverwritableSchemaProperties = helpers.getNonOverwritableProperties(TimeManagementSchema);
-
-// the non default properties
-var defaultSchemaProperties = helpers.getDefaultProperties(TimeManagementSchema);
-
-// the searchable properties
-var searchableSchemaProperties = helpers.getSearchableProperties(TimeManagementSchema);
-
-// the acceptable value properties
-var acceptableValuesSchemaProperties = helpers.getAcceptableValuesProperties(TimeManagementSchema);
-
-// the trimmable value properties
-var trimmableSchemaProperties = helpers.getTrimmableProperties(TimeManagementSchema);
+});
 
 /**
- * Converts to object
+ * Hook a pre validate method to test the validation
  */
-exports.toObject = function(obj, options) {
-    // return the obj
-    return _.cloneDeep(helpers.toObject(obj, options));
-};
+TimeManagementSchema.pre('validate', function (next) {
+    // set user
+    var tm = this;
 
-/**
- * Find By Id
- */
-exports.findById = function(id, callback) {
-    // find one
-    helpers.findById(dbPath, db, id, function(err, obj) {
-        // if a callback
-        if(callback) {
-            // hit the callback
-            callback(err, _.cloneDeep(obj));
-        }
-    });
-};
-
-/**
- * Find One
- */
-exports.findOne = function(query, callback) {
-    // find one
-    helpers.findOne(dbPath, db, query, function(err, obj) {
-        // if a callback
-        if(callback) {
-            // hit the callback
-            callback(err, _.cloneDeep(obj));
-        }
-    });
-};
-
-/**
- * Save
- */
-exports.save = function(objToSave, callback) {
-    // the object to return
-    var obj = null;
+    // regex for date format
+    var dateRegex = /^(?=.+([\/.-])..\1)(?=.{10}$)(?:(\d{4}).|)(\d\d).(\d\d)(?:.(\d{4})|)$/;
     
-    // the error to return
-    var err = null;
+    // determins if validation is fine
+    var validationFine = true;
+    var validationError = null;
 
-    // the first property value that isn't present
-    var firstProp = helpers.checkRequiredProperties(requiredSchemaProperties, objToSave);
-    
-    // if there is a property that doesn't exist
-    if(firstProp) {
-        // create new error
-        err = new Error(`All required properties are not present on object. The property \'${firstProp}\' was not in the object.`);
-    }
-    else {
-        // remove any keys that may have tried to been overwritten
-        helpers.removeAttemptedNonOverwritableProperties(nonOverwritableSchemaProperties, objToSave);
+    // read the db
+    readDB().then(function () {
+        // check if all dates are correct format and have proper values
+        _.forEach(tm.dates, function(date) {
+            // if not correct format
+            if(dateRegex.test(date.date)) {
+                _.forEach(date.types, function(type) {
+                    var foundType = null;
 
-        // check and set acceptable values
-        helpers.checkAndSetAcceptableValueForProperties(acceptableValuesSchemaProperties, TimeManagementSchema, objToSave);
+                    // check if the value exist
+                    _.some(acceptableTMTypes, function(aType) {
+                        const found = aType.toLowerCase() === type.toLowerCase();
+                        if(found) {
+                            foundType = aType;
+                        }
+                        return found;
+                    });
 
-        // trim any values
-        helpers.trimValuesForProperties(trimmableSchemaProperties, objToSave);
+                    // if found a type
+                    if(foundType) {
+                        type = foundType;
+                    }
+                    else {
+                        validationFine = false;
+                        validationError = `${type} is not a valid time management type`;
+                        return;
+                    }
+                });
+            }
+            else {
+                validationFine = false;
+                validationError = `${date.date} is not a valid time management date format. Must be in yyyy-mm-dd format fo string`;
+            }
+        });
 
-        // find the object matching the object index
-        var index = _.findIndex(db, { '_id': objToSave._id });
-        obj = index != -1 ? db[index] : null;
-
-        // if object was found
-        if(obj) {
-            // merge old data with new data
-            _.mergeWith(obj, objToSave, function (objValue, srcValue) {
-                // if array, replace array
-                if (_.isArray(objValue)) {
-                    return srcValue;
-                }
-            });
-
-            // replace item at index using native splice
-            db.splice(index, 1, obj);
-
-            // update the db
-            helpers.updateDB(dbPath, db, function(e) {
-                // set error
-                err = e;
-
-                // if error, reset object
-                obj = err ? null : obj;
-
-                // if a callback
-                if(callback) {
-                    // hit the callback
-                    callback(err, _.cloneDeep(obj));
-                }
-            });
+        // if fine
+        if(validationFine) {
+            next();
         }
         else {
-            // set all defaults
-            helpers.setNonOverwritablePropertyDefaults(defaultSchemaProperties, TimeManagementSchema, objToSave);
-            helpers.setNonExisistingPropertyDefaults(defaultSchemaProperties, TimeManagementSchema, objToSave);
-
-            // generate UUID
-            objToSave._id = uuidv1();
-
-            // set created date
-            objToSave.created = new Date();
-
-            // push the new object
-            db.push(objToSave);
-
-            // update the db
-            helpers.updateDB(dbPath, db, function(e) {
-                // set error
-                err = e;
-
-                // if error, reset object
-                objToSave = err ? null : objToSave;
-
-                // if a callback
-                if(callback) {
-                    // hit the callback
-                    callback(err, _.cloneDeep(objToSave));
-                }
-            });
+            tm.invalidate('dates', validationError);
         }
+    })
+    .catch(function (err) {
+        tm.invalidate('dates', err);
+    });
+});
+
+// specify the transform schema option
+if (!TimeManagementSchema.options.toObject) {
+    TimeManagementSchema.options.toObject = {};
+}
+
+/**
+ * Create instance method to return an object
+ */
+TimeManagementSchema.options.toObject.transform = function (doc, ret, options) {
+    // if hide options
+    if (options.hide) {
+        // go through each option and remove
+        options.hide.split(' ').forEach(function (prop) {
+            delete ret[prop];
+        });
     }
+
+    // always hide the id and version
+    //delete ret['_id'];
+    delete ret['__v'];
+
+    // return object
+    return ret;
 };
 
 /**
- * Update
+ * Create static method to return time off types
  */
-exports.update = function(query, updatedObj, callback) {
-    // the object to return
-    var obj = null;
+TimeManagementSchema.statics.getTimeOffTypes = function () {
+    // read the db
+    return readDB();
+};
+
+// set the static seed function
+TimeManagementSchema.statics.seed = seed;
+
+// model this Schema
+mongoose.model('TimeManagement', TimeManagementSchema);
+
+/**
+* Seeds the TimeManagement collection with document (TimeManagement)
+* and provided options.
+*/
+function seed(doc, options) {
+    // get TimeManagement model
+    var TimeManagement = mongoose.model('TimeManagement');
+  
+    return new Promise(function (resolve, reject) {
+        skipDocument().then(findUser).then(add).then(function (response) {
+            return resolve(response);
+        })
+        .catch(function (err) {
+            return reject(err);
+        });
+
+        // find user
+        function findUser(skip) {
+            // get User model
+            var User = mongoose.model('User');
+      
+            return new Promise(function (resolve, reject) {
+                // if skipping
+                if (skip) {
+                    return resolve(true);
+                }
+      
+                // find user
+                User.findOne({ roles: { $in: ['user'] } }).exec(function (err, user) {
+                    // error
+                    if (err) {
+                        return reject(err);
+                    }
+        
+                    doc.user = user;
+        
+                    return resolve();
+                });
+            });
+        };
+  
+        // skips a document
+        function skipDocument() {
+            return new Promise(function (resolve, reject) {
+                TimeManagement.findOne({ 'user': doc.user }).exec(function (err, existing) {
+                    // if error, reject
+                    if (err) {
+                        return reject(err);
+                    }
     
-    // the error to return
-    var err = null;
+                    // if doesn't exist, resolve
+                    if (!existing) {
+                        return resolve(false);
+                    }
+        
+                    // if existing and not overwriting, resolve
+                    if (existing && !options.overwrite) {
+                        return resolve(true);
+                    }
+    
+                    // remove TimeManagement (overwrite)
+                    existing.remove(function (err) {
+                        // if error, reject
+                        if (err) {
+                            return reject(err);
+                        }
+        
+                        // resolve
+                        return resolve(false);
+                    });
+                });
+            });
+        };
+    
+        // adds user
+        function add(skip) {
+            return new Promise(function (resolve, reject) {
+                // if skip
+                if (skip) {
+                    return resolve({
+                        message: clc.info(`Database Seeding: TimeManagement\t\t${doc.user} skipped`)
+                    });
+                }
+    
+                // create TimeManagement
+                var tm = new TimeManagement(doc);
+    
+                // save TimeManagement
+                tm.save(function (err) {
+                    // if error
+                    if (err) {
+                        return reject(err);
+                    }
+    
+                    return resolve({
+                        message: `Database Seeding: TimeManagement for\t\t${tm.user.displayName} added`
+                    });
+                });
+            });
+        };
+    });
+};
 
-    // find the object matching the object index
-    var index = _.findIndex(db, { '_id': query._id });
-    obj = index != -1 ? db[index] : null;
+/**
+ * Read the DB middleware
+ */
+function readDB() {
+    return new Promise(function (resolve, reject) {
+        // check if file exists
+        fs.stat(acceptableTMTypesPath, function(err, stats) {
+            // if the file exists
+            if (stats.isFile()) {
+                // read content
+                fs.readFile(acceptableTMTypesPath, 'utf8', (err, data) => {
+                    // if error occurred
+                    if (err) {
+                        // send internal error
+                        return reject(e);
+                    }
+                    else {
+                        try {
+                            // read content
+                            acceptableTMTypes = JSON.parse(data);
 
-    // if object was found
-    if(obj) {
-        // remove any keys that may have tried to been overwritten
-        helpers.removeAttemptedNonOverwritableProperties(nonOverwritableSchemaProperties, updatedObj);
+                            // go to next
+                            return resolve(acceptableTMTypes);
+                        }
+                        catch (e) {
+                            // send internal error
+                            return reject(e);
+                        }                    
+                    }
+                });
+            }
+            else {
+                // reinitialize
+                acceptableTMTypes = [];
 
-        // check and set acceptable values
-        helpers.checkAndSetAcceptableValueForProperties(acceptableValuesSchemaProperties, TimeManagementSchema, updatedObj);
-
-        // trim any values
-        helpers.trimValuesForProperties(trimmableSchemaProperties, updatedObj);
-
-        // merge old data with new data
-        _.mergeWith(obj, updatedObj, function (objValue, srcValue) {
-            // if array or object, replace array or object
-            if (_.isArray(objValue) || _.isObject(objValue)) {
-                return srcValue;
+                // go to next
+                return resolve(acceptableTMTypes);
             }
         });
-
-        // replace item at index using native splice
-        db.splice(index, 1, obj);
-
-        // update the db
-        helpers.updateDB(dbPath, db, function(e) {
-            // set error
-            err = e;
-
-            // if error, reset object
-            obj = err ? null : obj;
-
-            // if a callback
-            if(callback) {
-                // hit the callback
-                callback(err, _.cloneDeep(obj));
-            }
-        });
-    }
-    else {
-        // if a callback
-        if(callback) {
-            // hit the callback
-            callback(err, _.cloneDeep(obj));
-        }
-    }
+    });
 };

@@ -7,7 +7,7 @@ var // the path
     path = require('path'),
     // the error handler
     errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
-    // chalk for console logging
+    // clc for console logging
     clc = require(path.resolve('./config/lib/clc'));
 
 /**

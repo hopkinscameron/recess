@@ -8,84 +8,128 @@
 /**
  * Module dependencies
  */
-var // generate UUID's
-    uuidv1 = require('uuid/v1'),
-    // lodash
-    _ = require('lodash'),
+var // mongoose
+    mongoose = require('mongoose'),
+    // mongoose schema
+    Schema = mongoose.Schema,
     // the path
     path = require('path'),
-    // the helper functions
-    helpers = require(path.resolve('./config/lib/global-model-helpers')),
-    // the db
-    db = require('./db/users'),
-    // the db full path
-    dbPath = 'modules/account/server/models/db/users.json',
+    // validator
+    validator = require('validator'),
     // get the default config
-	defaultConfig = require(path.resolve('./config/env/default')),
+    defaultConfig = require(path.resolve('./config/env/default')),
+    // lodash
+    _ = require('lodash'),
+    // clc colors for console logging
+    clc = require(path.resolve('./config/lib/clc')),
     // bcrypt for cryptography
-    bcrypt = require('bcryptjs');
+    bcrypt = require('bcryptjs'),
+    // password generator
+    generatePassword = require('generate-password'),
+    // password strength tester
+    owasp = require('owasp-password-strength-test');
+
+owasp.config(defaultConfig.shared.owasp);
+
+// the max length of password array
+const maxPasswordLength = 5;
+
+/**
+ * A Validation function for email
+ */
+var validateEmail = function (email) {
+    return (!this.updated || validator.isEmail(email, { require_tld: false }));
+};
+
+/**
+ * A Validation function for username
+ * - at least 3 characters
+ * - only a-z0-9_-.
+ * - contain at least one alphanumeric character
+ * - not in list of illegal usernames
+ * - no consecutive dots: "." ok, ".." nope
+ * - not begin or end with "."
+ */
+var validateUsername = function(username) {
+    // the regex for legal usernames
+    var usernameRegex = /^(?=[\w.-]+$)(?!.*[._-]{2})(?!\.)(?!.*\.$).{3,34}$/;
+    return username && usernameRegex.test(username) && defaultConfig.illegalUsernames.indexOf(username) < 0;
+};
+
+/**
+ * A validation for maintaining an array of certain length
+ * @param {*} passwords 
+ */
+var validateLastPasswordsLength = function(passwords) {
+    return passwords.length <= maxPasswordLength;
+};
 
 /**
  * User Schema
  */ 
-var UserSchema = {
-    _id: {
-        type: String,
-        overwriteable: false
-    },
+var UserSchema = new Schema ({
     created: {
-        type: Date,
-        overwriteable: false
-    },
-    internalName: {
-        type: String,
-        overwriteable: false
+        type: Date
     },
     roles: {
-        type: String,
-        enum: ['user', 'admin'],
-        default: ['user']
+        type: [{
+          type: String,
+          enum: ['user', 'admin']
+        }],
+        default: ['user'],
+        required: [true, 'Please provide at least one role']
     },
     displayName: {
         type: String,
-        overwriteable: false,
         trim: true
     },
     firstName: {
         type: String,
         trim: true,
-        required: true
+        required: [true, 'First name is required']
     },
     lastName: {
         type: String,
         trim: true,
-        required: true
+        required: [true, 'First name is required']
     },
     username: {
         type: String,
-        required: true,
-        unique: true,
-        trim: true
+        required: [true, 'Username is required'],
+        unique: [true, 'Username already exists'],
+        validate: [validateUsername, 'Please enter a valid username: 3+ characters long, non restricted word, characters "_-.", no consecutive dots, does not begin or end with dots, letters a-z and numbers 0-9.'],
+        trim: true,
+        lowercase: true
     },
     email: {
         type: String,
-        required: true,
-        unique: true,
-        trim: true
+        index: {
+            unique: true,
+            sparse: true
+        },
+        default: '',
+        required: [true, 'Email is required'],
+        unique: [true, 'There is an account already in use with this email address'],
+        validate: [validateEmail, 'Please enter a valid email address'],
+        trim: true,
+        lowercase: true
     },
     password: {
         type: String,
-        required: true
+        required: [true, 'Password is required'],
     },
     passwordUpdatedLast: {
-        type: Date,
-        overwriteable: false
+        type: Date
     },
     lastPasswords: {
-        type: Array,
-        overwriteable: false,
+        type: [{
+            type: String
+        }],
         default: new Array(),
-        max: 5
+        validate: [validateLastPasswordsLength, `Last passwords must not exceed ${maxPasswordLength}`]
+    },
+    updated: {
+        type: Date
     },
     lastLogin: {
         type: Date
@@ -96,401 +140,301 @@ var UserSchema = {
     resetPasswordExpires: {
         type: Date
     }
-};
-
-// the required properties
-var requiredSchemaProperties = helpers.getRequiredProperties(UserSchema);
-
-// the non overwritable properties the user cannot self change
-var nonOverwritableSchemaProperties = helpers.getNonOverwritableProperties(UserSchema);
-
-// the non default properties
-var defaultSchemaProperties = helpers.getDefaultProperties(UserSchema);
-
-// the searchable properties
-var searchableSchemaProperties = helpers.getSearchableProperties(UserSchema);
-
-// the acceptable value properties
-var acceptableValuesSchemaProperties = helpers.getAcceptableValuesProperties(UserSchema);
-
-// the trimmable value properties
-var trimmableSchemaProperties = helpers.getTrimmableProperties(UserSchema);
+});
 
 /**
- * Converts to object
+ * Hook a pre validate method to test the local password
  */
-exports.toObject = function(obj, options) {
-    // return the obj
-    return _.cloneDeep(helpers.toObject(obj, options));
-};
+UserSchema.pre('validate', function (next) {
+    // set user
+    var user = this;
 
-/**
- * Find
- */
-exports.find = function(query, callback) {
-    // find
-    helpers.find(dbPath, db, query, searchableSchemaProperties, function(err, objs) {
-        // if a callback
-        if(callback) {
-            // hit the callback
-            callback(err, _.cloneDeep(objs));
+    // if password, and modified
+    if (user.password && user.isModified('password')) {
+        // test new password strength
+        var result = owasp.test(user.password);
+
+        // if errors
+        if (result.errors.length > 0) {
+            // set error and invalidate
+            var error = result.errors.join(' ');
+            user.invalidate('password', error);
         }
-    });
-};
+        
+        // holds the number of iterations completed
+        var indiciesCompleted = 0;
 
-/**
- * Find By Id
- */
-exports.findById = function(id, callback) {
-    // find one
-    helpers.findById(dbPath, db, id, function(err, obj) {
-        // if a callback
-        if(callback) {
-            // hit the callback
-            callback(err, _.cloneDeep(obj));
-        }
-    });
-};
+        // if last passwords
+        if(user.lastPasswords.length > 0) {
+            // check if this password has been used before
+            _.forEach(user.lastPasswords, function(lastPassword) {
+                // compare the plain text password to the encrypted password
+                bcrypt.compare(user.password, lastPassword, function(err, isMatch) {
+                    // increase the number completed
+                    indiciesCompleted++;
 
-/**
- * Find One
- */
-exports.findOne = function(query, callback) {
-    // find one
-    helpers.findOne(dbPath, db, query, function(err, obj) {
-        // if a callback
-        if(callback) {
-            // hit the callback
-            callback(err, _.cloneDeep(obj));
-        }
-    });
-};
-
-/**
- * Save
- */
-exports.save = function(objToSave, callback) {
-    // update local db copy
-    db = _.cloneDeep(foundDb);
-
-    // the object to return
-    var obj = null;
-    
-    // the error to return
-    var err = null;
-
-    // the first property value that isn't present
-    var firstProp = helpers.checkRequiredProperties(requiredSchemaProperties, objToSave);
-    
-    // if there is a property that doesn't exist
-    if(firstProp) {
-        // create new error
-        err = new Error(`All required properties are not present on object. The property \'${firstProp}\' was not in the object.`);
-    }
-    else {
-        // remove any keys that may have tried to been overwritten
-        helpers.removeAttemptedNonOverwritableProperties(nonOverwritableSchemaProperties, objToSave);
-
-        // check and set acceptable values
-        helpers.checkAndSetAcceptableValueForProperties(acceptableValuesSchemaProperties, UserSchema, objToSave);
-
-        // trim any values
-        helpers.trimValuesForProperties(trimmableSchemaProperties, objToSave);
-
-        // find the object matching the object index
-        var index = _.findIndex(db, { 'internalName': objToSave.username ? objToSave.username.toLowerCase() : objToSave.username });
-        obj = index != -1 ? db[index] : null;
-
-        // if object was found
-        if(obj) {
-            // if username was changed
-            if(objToSave.username) {
-                // update the internal name
-                objToSave.internalName = objToSave.username.toLowerCase();
-            }
-            
-            // encrypt password
-            encryptPassword(objToSave, function(err) {
-                // if error occurred
-                if(err) {
-                    return callback(err);
-                }
-                else {
-                    // merge old data with new data
-                    _.mergeWith(obj, objToSave, function (objValue, srcValue) {
-                        // if array, replace array
-                        if (_.isArray(objValue)) {
-                            return srcValue;
-                        }
-                    });
-
-                    // set display name
-                    obj.displayName = `${obj.firstName} ${obj.lastName}`;
-
-                    // replace item at index using native splice
-                    db.splice(index, 1, obj);
-
-                    // update the db
-                    helpers.updateDB(dbPath, db, function(e) {
-                        // set error
-                        err = e;
-
-                        // if error, reset object
-                        obj = err ? null : obj;
-
-                        // if a callback
-                        if(callback) {
-                            // hit the callback
-                            callback(err, _.cloneDeep(obj));
-                        }
-                    });
-                }
+                    // if error
+                    if (err) {
+                        // invalidate
+                        user.invalidate('password', err);
+                    }
+                    else if(isMatch) {
+                        // invalidate
+                        user.invalidate('password', 'This password was used previousl');
+                    }
+                    else if(indiciesCompleted == user.lastPasswords.length) {
+                        next();
+                    }
+                });
             });
         }
         else {
-            // set all defaults
-            helpers.setNonOverwritablePropertyDefaults(defaultSchemaProperties, UserSchema, objToSave);
-            helpers.setNonExisistingPropertyDefaults(defaultSchemaProperties, UserSchema, objToSave);
+            next();
+        }
+    }
+    else {
+        next();
+    }
+});
 
-            // encrypt password
-            encryptPassword(objToSave, function(err) {
-                // if error occurred
-                if(err) {
-                    return callback(err);
+/**
+ * Hook a pre save method to hash password
+ */
+UserSchema.pre('save', function(next) {
+    // set user
+    var user = this;
+
+    // if first save
+    if(!user.created) {
+        user.created = Date.now();
+    }
+
+    // set new date for last updated
+    user.updated = Date.now();
+
+    // if first or last name was modified
+    if(user.isModified('firstName') || user.isModified('lastName')) {
+        user.displayName = user.firstName + ' ' + user.lastName;
+    }
+
+    // only hash the password if it has been modified (or is new)
+    if (!user.isModified('password')) {
+        return next();
+    } 
+
+    // generate a salt
+    bcrypt.genSalt(defaultConfig.saltRounds, function(err, salt) {
+        // if error occurred
+        if (err) {
+            return next(err);
+        }
+
+        // hash the password using our new salt
+        bcrypt.hash(user.password, salt, function(err, hash) {
+            // if error occurred
+            if (err) {
+                return next(err);
+            }
+
+            // check if max number of saved passwords has been hit
+            if(user.lastPasswords.length == maxPasswordLength) {
+                // pop off the last password
+                user.lastPasswords.pop();
+            }
+
+            // override the cleartext password with the hashed one
+            user.password = hash;
+            user.passwordUpdatedLast = new Date();
+            user.lastPasswords.unshift(hash);
+
+            next();
+        });
+    });
+});
+
+/**
+ * Create instance method to compare passwords
+ */
+UserSchema.methods.comparePassword = function(plainTextPassword, callback) {
+    // compare the plain text password to the encrypted password
+    bcrypt.compare(plainTextPassword, this.password, function(err, isMatch) {
+        // if error
+        if (err) {
+            return callback(err);
+        }
+        
+        callback(null, isMatch);
+    });
+};
+
+// specify the transform schema option
+if (!UserSchema.options.toObject) {
+    UserSchema.options.toObject = {};
+}
+
+/**
+ * Create instance method to return an object
+ */
+UserSchema.options.toObject.transform = function (doc, ret, options) {
+    // if hide options
+    if (options.hide) {
+        // go through each option and remove
+        options.hide.split(' ').forEach(function (prop) {
+            delete ret[prop];
+        });
+    }
+
+    // always hide the id and version
+    //delete ret['_id'];
+    delete ret['__v'];
+
+    // return object
+    return ret;
+};
+
+/**
+ * Create instance method to generate a random passphrase
+ */
+UserSchema.statics.generateRandomPassphrase = function () {
+    return new Promise(function (resolve, reject) {
+        var password = '';
+        var repeatingCharacters = new RegExp('(.)\\1{2,}', 'g');
+
+        // iterate until the we have a valid passphrase
+        // NOTE: Should rarely iterate more than once, but we need this to ensure no repeating characters are present
+        while (password.length < 20 || repeatingCharacters.test(password)) {
+            // build the random password
+            password = generatePassword.generate({
+                length: Math.floor(Math.random() * (20)) + 20, // randomize length between 20 and 40 characters
+                numbers: true,
+                symbols: false,
+                uppercase: true,
+                excludeSimilarCharacters: true
+            });
+
+            // check if we need to remove any repeating characters
+            password = password.replace(repeatingCharacters, '');
+        }
+
+        // send the rejection back if the passphrase fails to pass the strength test
+        if (owasp.test(password).errors.length) {
+            reject(new Error('An unexpected problem occured while generating the random passphrase'));
+        } 
+        else {
+            // resolve with the validated passphrase
+            resolve(password);
+        }
+    });
+};
+
+// set the static seed function
+UserSchema.statics.seed = seed;
+
+// export for other uses
+module.exports = mongoose.model('User', UserSchema);
+
+/**
+* Seeds the User collection with document (User)
+* and provided options.
+*/
+function seed(doc, options) {
+    // get User model
+    var User = mongoose.model('User');
+  
+    return new Promise(function (resolve, reject) {
+        skipDocument().then(add).then(function (response) {
+            return resolve(response);
+        })
+        .catch(function (err) {
+            return reject(err);
+        });
+  
+        // skips a document
+        function skipDocument() {
+            return new Promise(function (resolve, reject) {
+                User.findOne({ 'username': doc.username }).exec(function (err, existing) {
+                    // if error, reject
+                    if (err) {
+                        return reject(err);
+                    }
+    
+                    // if doesn't exist, resolve
+                    if (!existing) {
+                        return resolve(false);
+                    }
+        
+                    // if existing and not overwriting, resolve
+                    if (existing && !options.overwrite) {
+                        return resolve(true);
+                    }
+    
+                    // remove User (overwrite)
+                    existing.remove(function (err) {
+                        // if error, reject
+                        if (err) {
+                            return reject(err);
+                        }
+        
+                        // resolve
+                        return resolve(false);
+                    });
+                });
+            });
+        };
+    
+        // adds user
+        function add(skip) {
+            return new Promise(function (resolve, reject) {
+                // if skip
+                if (skip) {
+                    return resolve({
+                        message: clc.info(`Database Seeding: User\t\t${doc.username} skipped`)
+                    });
+                }
+    
+                // if password is present
+                if(doc.password) {
+                    // create User
+                    var user = new User(doc);
+                    user.displayName = user.firstName + ' ' + user.lastName;
+        
+                    // save User
+                    user.save(function (err) {
+                        // if error
+                        if (err) {
+                            return reject(err);
+                        }
+        
+                        return resolve({
+                            message: `Database Seeding: User\t\t${user.username} added with password set to ${user.password}`
+                        });
+                    });
                 }
                 else {
-                    // generate UUID
-                    objToSave._id = uuidv1();
-
-                    // set created date
-                    objToSave.created = new Date();
-
-                    // set the internal name
-                    objToSave.internalName = objToSave.username.toLowerCase();
-
-                    // set display name
-                    objToSave.displayName = `${objToSave.firstName} ${objToSave.lastName}`;
-
-                    // push the new object
-                    db.push(objToSave);
-
-                    // update the db
-                    helpers.updateDB(dbPath, db, function(e) {
-                        // set error
-                        err = e;
-
-                        // if error, reset object
-                        objToSave = err ? null : objToSave;
-
-                        // if a callback
-                        if(callback) {
-                            // hit the callback
-                            callback(err, _.cloneDeep(objToSave));
-                        }
+                    // generate random passphreas
+                    User.generateRandomPassphrase().then(function (passphrase) {
+                        // create User
+                        var user = new User(doc);
+                        user.displayName = user.firstName + ' ' + user.lastName;
+                        user.password = passphrase;
+            
+                        // save User
+                        user.save(function (err) {
+                            // if error
+                            if (err) {
+                                return reject(err);
+                            }
+            
+                            return resolve({
+                                message: `Database Seeding: User\t\t${user.username} added with password set to ${passphrase}`
+                            });
+                        });
+                    })
+                    .catch(function (err) {
+                        return reject(err);
                     });
                 }
             });
-        }
-    }
-};
-
-/**
- * Update
- */
-exports.update = function(query, updatedObj, callback) {
-    // the object to return
-    var obj = null;
-    
-    // the error to return
-    var err = null;
-
-    // find the object matching the object index
-    var index = _.findIndex(db, { '_id': query._id });
-    obj = index != -1 ? db[index] : null;
-
-    // if object was found
-    if(obj) {
-        // remove any keys that may have tried to been overwritten
-        helpers.removeAttemptedNonOverwritableProperties(nonOverwritableSchemaProperties, updatedObj);
-
-        // check and set acceptable values
-        helpers.checkAndSetAcceptableValueForProperties(acceptableValuesSchemaProperties, UserSchema, updatedObj);
-
-        // trim any values
-        helpers.trimValuesForProperties(trimmableSchemaProperties, updatedObj);
-
-        // add the last passwords to this object if changing the password
-        updatedObj.password ? updatedObj.lastPasswords = obj.lastPasswords : updatedObj;
-        
-        // if username was changed
-        if(updatedObj.username) {
-            // update the internal name
-            obj.internalName = updatedObj.username.toLowerCase();
-        }
-
-        // encrypt password
-        encryptPassword(updatedObj, function(err) {
-            // if error occurred
-            if(err) {
-                // if a callback
-                if(callback) {
-                    // hit the callback
-                    callback(err);
-                }
-            }
-            else {
-                // merge old data with new data
-                _.mergeWith(obj, updatedObj, function (objValue, srcValue) {
-                    // if array, replace array
-                    if (_.isArray(objValue)) {
-                        return srcValue;
-                    }
-                });
-
-                // set display name
-                obj.displayName = `${obj.firstName} ${obj.lastName}`;
-
-                // replace item at index using native splice
-                db.splice(index, 1, obj);
-
-                // update the db
-                helpers.updateDB(dbPath, db, function(e) {
-                    // set error
-                    err = e;
-
-                    // if error, reset object
-                    obj = err ? null : obj;
-
-                    // if a callback
-                    if(callback) {
-                        // hit the callback
-                        callback(err, _.cloneDeep(obj));
-                    }
-                });
-            }
-        });
-    }
-    else {
-        // if a callback
-        if(callback) {
-            // hit the callback
-            callback(err, _.cloneDeep(obj));
-        }
-    }
-};
-
-/**
- * Compares password
- */
-exports.comparePassword = function(user, plainTextPassword, callback) {
-    // compare the passwords
-    bcrypt.compare(plainTextPassword, user.password, function(err, isMatch) {
-        // if error occurred
-        if (err) {
-            // if a callback
-            if(callback) {
-                // hit the callback
-                callback(err);
-            }
-        } 
-        else if(callback) {
-            // hit the callback
-            callback(null, isMatch);
-        }
+        };
     });
-};
-
-/**
- * Compares last passwords
- */
-exports.compareLastPasswords = function(user, plainTextPassword, callback) {
-    // holds all the indice that have completed the functionality
-    var indicesCompleted = 0;
-
-    // check if this is a past password
-    _.forEach(user.lastPasswords, function (value) {
-        // compare the passwords
-        bcrypt.compare(plainTextPassword, value, function(err, isMatch) {
-            // increase the number of indicies
-            indicesCompleted++;
-
-            // if error occurred
-            if (err) {
-                // if a callback
-                if(callback) {
-                    // hit the callback
-                    callback(err);
-                    return;
-                }
-            } 
-            else if(isMatch) {
-                // hit the callback
-                callback(null, isMatch);
-
-                return;
-            }
-            else if(indicesCompleted == user.lastPasswords.length) {
-                // hit the callback
-                callback(null, isMatch);
-            }
-        });
-    });
-};
-
-// encrypt password
-function encryptPassword(user, callback) {
-    // if password exists
-    if(user.password) {
-        // generate a salt
-        bcrypt.genSalt(defaultConfig.saltRounds, function(err, salt) {
-            // if error occurred
-            if (err) {
-                // if a callback
-                if(callback) {
-                    // hit the callback
-                    callback(err);
-                }
-            }
-
-            // hash the password using our new salt
-            bcrypt.hash(user.password, salt, function(err, hash) {
-                // if error occurred
-                if (err) {
-                    // if a callback
-                    if(callback) {
-                        // hit the callback
-                        callback(err);
-                    }
-                } 
-
-                // override the cleartext password with the hashed one
-                user.password = hash;
-
-                // set password updated last
-                user.passwordUpdatedLast = new Date();
-
-                // check if the max number of last passwords that have been reached
-                if(user.lastPasswords.length == UserSchema.lastPasswords.max) {
-                    // pop off the last element
-                    user.lastPasswords.pop();
-                }
-                
-                // add to the list of last passwords used
-                user.lastPasswords.unshift(hash);
-
-                // if a callback
-                if(callback) {
-                    // hit the callback
-                    callback();
-                }
-            });
-        });
-    }
-    else {
-        // if a callback
-        if(callback) {
-            // hit the callback
-            callback();
-        }
-    }
 };

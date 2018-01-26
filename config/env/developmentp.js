@@ -9,6 +9,19 @@ var // the default environment configuration
     fs = require('fs');
 
 module.exports = {
+    db: {
+        uri: process.env.MONGODB || 'mongodb://localhost:27017/recessProd',
+        options: {
+            user: '',
+            pass: '',
+            db: { 
+                native_parser: true 
+            },
+            poolSize: 5
+        },
+        // Enable mongoose debug mode
+        debug: process.env.MONGODB_DEBUG || false
+    },
     port: process.env.PORT || 3000,
     // binding to 127.0.0.1 is safer in production.
     host: process.env.HOST || '0.0.0.0',
