@@ -28,4 +28,13 @@ module.exports = function (app) {
 	// format /api/timeManagement/all
     app.route('/api/timeManagement/all').all([timeManagementPolicy.isAdminAllowed, timeManagementController.readDB, accountPolicy.isAllowed, accountController.readDB])
     .get(timeManagementController.getUsersTimeOff);
+
+    // GET gets all users time management information for today
+	// format /api/timeManagement/today
+    app.route('/api/timeManagement/today').all([timeManagementPolicy.isAllowed, timeManagementController.readDB, accountPolicy.isAllowed, accountController.readDB])
+    .get(timeManagementController.getUsersTimeOffToday);
+
+    // GET gets time management information
+    app.route('/api/timeManagement/types')
+    .get(timeManagementController.getTimeOffTypes)
 };

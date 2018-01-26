@@ -6,7 +6,7 @@ var // the path
 	config = require(path.resolve('./config/config')),
     // the error handler
     errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
-    // chalk for console logging
+    // clc for console logging
     clc = require(path.resolve('./config/lib/clc')),
     // the file system reader
     fs = require('fs'),

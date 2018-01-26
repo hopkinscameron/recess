@@ -1,6 +1,6 @@
 'use strict';
 
-// chalk for console logging
+// clc for console logging
 var clc = require('cli-color');
     
 var clcConfig = {

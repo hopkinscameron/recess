@@ -9,10 +9,8 @@ var // passport for authentication
     path = require('path'),
     // the application configuration
     config = require(path.resolve('./config/config')),
-    // lodash
-    _ = require('lodash'),
     // the User model
-    User = require(path.resolve('./modules/account/server/models/model-user'));
+    User = require('mongoose').model('User');
 
 /**
  * Module init function
@@ -31,25 +29,8 @@ module.exports = function (app, db) {
     // used to deserialize the user
     passport.deserializeUser(function(id, done) {
         // find the user
-        User.findById(id, function(err, user) {
-            // if error occurred
-            if (err) {
-                // send internal error
-                res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
-                console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
-            }
-            else if(user) {
-                // save the id since it will be lost when going to object
-                // hide the password for security purposes
-                var id = user._id;
-                user = User.toObject(user, { 'hide': 'password lastPasswords internalName resetPasswordToken resetPasswordExpires' });
-                user._id = id;
-
-                done(err, user);
-            }
-            else {
-                done(err, null);
-            }
+        User.findOne({ '_id': id }, '-password -lastPasswords', function(err, user) {
+            done(err, user);
         });
     });
 

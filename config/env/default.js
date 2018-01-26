@@ -6,14 +6,16 @@
 module.exports = {
     app: {
         title: 'Recess',
-        description: 'Full-Stack JavaScript with Express, AngularJS, and Node.js',
-        keywords: 'express, angularjs, node.js, passport, full-stack',
+        description: 'Full-Stack JavaScript with MongoDB, Express, AngularJS, and Node.js',
+        keywords: 'mongodb, express, angularjs, node.js, passport, full-stack',
         googleAnalyticsTrackingID: process.env.GOOGLE_ANALYTICS_TRACKING_ID || 'GOOGLE_ANALYTICS_TRACKING_ID',
         appInsightsAnalyticsTrackingID: process.env.APP_INSIGHTS_ANALYTICS_TRACKING_ID || 'APP_INSIGHTS_ANALYTICS_TRACKING_ID'
     },
     db: {
         promise: global.Promise,
-        options: { }
+        options: {
+            
+        }
     },
     port: process.env.PORT || 3000,
     host: process.env.HOST || '0.0.0.0',
@@ -21,16 +23,11 @@ module.exports = {
     // URL. For example: https://www.myapp.com (including port if required).
     domain: process.env.DOMAIN || 'http://127.0.0.1:80',
     // session options
-    sessionOptions: {
-        type: 'tingodb',
-        dbPath: 'modules/account/server/models/db/sessions',
-        ttl: 86400, // 86400 24 hours (in seconds) // 60 -> 1 minute
-        timeout: 10000, 
-        collectionName: 'sessions',
-        secret: process.env.SESSION_SECRET || 'TEST',
-        autoRemove: 'interval',
-        autoRemoveInterval: 1
-    },
+    // sessionSecret should be changed for security measures and concerns
+    sessionSecret: process.env.SESSION_SECRET || 'Recess',
+    // sessionKey is the cookie session name
+    sessionKey: 'sessionId',
+    sessionCollection: 'sessions',
     // session Cookie settings
     sessionCookie: {
         // session expiration is set by default to 24 hours (in milliseconds)
@@ -44,8 +41,6 @@ module.exports = {
         // in HTTPS mode.
         secure: false
     },
-    // sessionKey is the cookie session name
-    sessionKey: 'sessionId',
     saltRounds: parseInt(process.env.SALT_ROUNDS) || 10,
     // clear interval after session expires (in seconds)
     clearInterval: 60,

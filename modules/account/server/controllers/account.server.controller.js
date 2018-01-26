@@ -7,7 +7,7 @@ var // the path
     path = require('path'),
     // the error handler
     errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
-    // chalk for console logging
+    // clc for console logging
     clc = require(path.resolve('./config/lib/clc')),
     // the application configuration
     config = require(path.resolve('./config/config')),
@@ -22,7 +22,7 @@ var // the path
     // the file details for this view
     accountDetails = {},
     // the User model
-    User = require(path.resolve('./modules/account/server/models/model-user'));
+    User = require('mongoose').model('User');
 
 /**
  * Show the current page
@@ -51,7 +51,8 @@ exports.updateProfile = function (req, res) {
     var updatedValues = {
         'firstName': _.has(req.body, 'firstName') ? req.body.firstName : undefined,
         'lastName': _.has(req.body, 'lastName') ? req.body.lastName : undefined,
-        'username': _.has(req.body, 'username') ? req.body.username : undefined
+        'username': _.has(req.body, 'username') ? req.body.username : undefined,
+        'email': _.has(req.body, 'email') ? req.body.email : undefined
     };
 
     // remove all undefined members
@@ -92,29 +93,22 @@ exports.updateProfile = function (req, res) {
             } 
             else {
                 // update the values
-                User.update(req.user, updatedValues, function(err, updatedUser) {
-                    // if an error occurred
+                req.user.firstName = updatedValues.firstName ? updatedValues.firstName : req.user.firstName;
+                req.user.lastName = updatedValues.lastName ? updatedValues.lastName : req.user.lastName;
+                req.user.username = updatedValues.username ? updatedValues.username : req.user.username;
+                req.user.email = updatedValues.email ? updatedValues.email : req.user.email;
+
+                // update user
+                req.user.save(function(err) {
+                    // if error occurred
                     if (err) {
                         // send internal error
                         res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                         console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
                     }
-                    else if (updatedUser) {
-                        // create the safe user object
-                        var safeUserObj = createUserReqObject(updatedUser);
-
-                        // set the updated object
-                        var p = req.user.paymentInfo;
-                        req.user = safeUserObj;
-                        req.user.paymentInfo = p;
-
+                    else {
                         // read the profile
                         module.exports.readProfile(req, res);
-                    }
-                    else {
-                        // send internal error
-                        res.status(500).send({ error: true, title: errorHandler.getErrorTitle({ code: 500 }), message: errorHandler.getGenericErrorMessage({ code: 500 }) });
-                        console.log(clc.error(`In ${path.basename(__filename)} \'updateProfile\': ` + errorHandler.getGenericErrorMessage({ code: 500 }) + ' Couldn\'t update User.'));
                     }
                 });
             }
@@ -133,7 +127,6 @@ exports.updatePassword = function (req, res) {
     // validate existence
     req.checkBody('oldPassword', 'Old password is required.').notEmpty();
     req.checkBody('newPassword', 'New password is required.').notEmpty();
-    req.checkBody('newPassword', `Please enter a passphrase or password with ${config.shared.owasp.minLength} or more characters, numbers, lowercase, uppercase, and special characters.`).isStrongPassword();
     req.checkBody('confirmedPassword', 'Confirmed password is required.').notEmpty();
     req.checkBody('confirmedPassword', 'Confirmed password should be equal to new password.').isEqual(req.body.newPassword);
 
@@ -159,79 +152,37 @@ exports.updatePassword = function (req, res) {
             res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
         } 
         else {
-            // find user based on id
-            User.findById(req.user._id, function(err, foundUser) {
+            // compare current password equality
+            req.user.comparePassword(req.body.oldPassword, function(err, isMatch) {
                 // if error occurred occurred
                 if (err) {
-                    // return error
-                    return next(err);
+                    // send internal error
+                    res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
+                    console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
                 }
-                // if user was found
-                else if(foundUser) {
-                    // compare current password equality
-                    User.comparePassword(foundUser, req.body.oldPassword, function(err, isMatch) {
-                        // if error occurred occurred
+                else if(!isMatch) {
+                    // return error
+                    res.json({ 'd': { error: true, title: errorHandler.getErrorTitle({ code: 200 }), message: 'Current password does not match.' } });
+                }
+                else {
+                    // save new password
+                    req.user.password = req.body.newPassword;
+
+                    // update user
+                    req.user.save(function(err) {
+                        // if error occurred
                         if (err) {
                             // send internal error
                             res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                             console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
                         }
-                        else if(!isMatch) {
-                            // return error
-                            res.json({ 'd': { error: true, title: errorHandler.getErrorTitle({ code: 200 }), message: 'Current password does not match.' } });
-                        }
                         else {
-                            // check if user entered a previous password
-                            User.compareLastPasswords(foundUser, req.body.newPassword, function(err, isPastPassword) {
-                                // if error occurred occurred
-                                if (err) {
-                                    // send internal error
-                                    res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
-                                    console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
-                                }
-                                else if(isPastPassword) {
-                                    // return error
-                                    res.json({ 'd': { error: true, title: errorHandler.getErrorTitle({ code: 200 }), message: 'This password was used within the last 5 password changes. Please choose a different one.' } });
-                                }
-                                else {
-                                    // create the updated values object
-                                    var updatedValues = {
-                                        'password': req.body.newPassword
-                                    };
-
-                                    // update user
-                                    User.update(foundUser, updatedValues, function(err, updatedUser) {
-                                        // if error occurred occurred
-                                        if (err) {
-                                            // send internal error
-                                            res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
-                                            console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
-                                        }
-                                        else if(updatedUser) {
-                                            // create the safe user object
-                                            var safeUserObj = createUserReqObject(updatedUser);
-                                            req.user = safeUserObj;
-
-                                            // return password changed
-                                            res.json({ 'd': { title: errorHandler.getErrorTitle({ code: 200 }), message: errorHandler.getGenericErrorMessage({ code: 200 }) + ' Successful password change.' } });
-                                        }
-                                        else {
-                                            // send internal error
-                                            res.status(500).send({ error: true, title: errorHandler.getErrorTitle({ code: 500 }), message: errorHandler.getGenericErrorMessage({ code: 500 }) });
-                                            console.log(clc.error(`In ${path.basename(__filename)} \'changePassword\': ` + errorHandler.getGenericErrorMessage({ code: 500 }) + ' Couldn\'t update User.'));
-                                        }
-                                    });
-                                }
-                            });
+                            // read the profile
+                            module.exports.readProfile(req, res);
                         }
-                    });	
+                    });
                 }
-                else {
-                    // send internal error
-                    res.status(500).send({ error: true, title: errorHandler.getErrorTitle({ code: 500 }), message: errorHandler.getGenericErrorMessage({ code: 500 }) });
-                    console.log(clc.error(`In ${path.basename(__filename)} \'changePassword\': ` + errorHandler.getGenericErrorMessage({ code: 500 }) + ' Couldn\'t find User.'));
-                }
-            });
+            });	
         }
     });
 };
@@ -274,27 +225,20 @@ exports.resetPassword = function (req, res) {
                 }
                 // if user was found
                 else if(foundUser) {
-                    // create the updated values object
-                    var updatedValues = {
-                        'password': 'Pass@Word1'
-                    };
+                    // save new password
+                    foundUser.password = 'Pass@Word1';
 
                     // update user
-                    User.update(foundUser, updatedValues, function(err, updatedUser) {
-                        // if error occurred occurred
+                    foundUser.save(function(err) {
+                        // if error occurred
                         if (err) {
                             // send internal error
                             res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                             console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
                         }
-                        else if(updatedUser) {
-                            // return password reset
-                            res.json({ 'd': { title: errorHandler.getErrorTitle({ code: 200 }), message: errorHandler.getGenericErrorMessage({ code: 200 }) + ' Successful password reset.' } });
-                        }
                         else {
-                            // send internal error
-                            res.status(500).send({ error: true, title: errorHandler.getErrorTitle({ code: 500 }), message: errorHandler.getGenericErrorMessage({ code: 500 }) });
-                            console.log(clc.error(`In ${path.basename(__filename)} \'resetPassword\': ` + errorHandler.getGenericErrorMessage({ code: 500 }) + ' Couldn\'t update User.'));
+                            // return password reset
+                            res.json({ 'd': { error: true, title: errorHandler.getErrorTitle({ code: 200 }), message: 'Password reset was a success!' } });
                         }
                     });
                 }
@@ -372,14 +316,8 @@ exports.readDB = function (req, res, next) {
 
 // creates the safe user object to set in the request
 function createUserReqObject(user) {
-    // clone to not overwrite
-    var safeObj = _.cloneDeep(user);
-
-    // save the id since it will be lost when going to object
-    // hide the information for security purposes
-    var id = safeObj._id;
-    safeObj = User.toObject(safeObj, { 'hide': 'password lastPasswords internalName created' });
-    safeObj._id = id;
+    // get object value
+    var safeObj = user.toObject({ hide: '_id password lastPasswords', transform: false });
 
     // return the safe obj
     return safeObj;

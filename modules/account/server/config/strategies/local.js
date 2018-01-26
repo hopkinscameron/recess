@@ -10,7 +10,7 @@ var // passport for authentication
     // the path
     path = require('path'),
     // the User model
-    User = require(path.resolve('./modules/account/server/models/model-user'));
+    User = require('mongoose').model('User');
 
 module.exports = function () {
     // =========================================================================
@@ -33,41 +33,35 @@ module.exports = function () {
 
             // find a user whose username is the same as the forms username
             // we are checking to see if the user trying to login already exists
-            User.findOne({ 'internalName': username }, function(err, user) {
+            User.findOne({ 'internalName': username }, function(err, foundUser) {
                 // if there are any errors, return the error
                 if (err) {
                     return done(err);
                 }
 
                 // check to see if theres already a user with that username
-                if (user) {
-                    return done(null, null, 'That username is already taken.');
+                if (foundUser) {
+                    return done(null, null, { 'message': 'That username is already taken' });
                 } 
                 else {
-                    // create the user and set the user's local credentials
-                    var newUser = {
+                    // if there is no user with that username
+                    // create the user
+                    var newUser = new User({
                         'username': username,
                         'password': password,
                         'email': req.body.email,
                         'firstName': req.body.firstName,
                         'lastName': req.body.lastName
-                    };
+                    });
 
                     // save the user
-                    User.save(newUser, function(err, newSavedUser) {
+                    newUser.save(function(err) {
                         // if error occurred
                         if (err) {
                             throw err;
                         }
-
-                        // save the id since it will be lost when going to object
-                        // hide the password for security purposes
-                        var id = newSavedUser._id;
-                        var user = User.toObject(newSavedUser, { 'hide': 'password lastPasswords internalName created resetPasswordToken resetPasswordExpires' });
-                        user._id = id;
-
-                        // hide the password
-                        return done(null, user);
+                            
+                        return done(null, newUser);
                     });
                 }
             });    
@@ -80,31 +74,32 @@ module.exports = function () {
     // we are using named strategies since we have one for login and one for signup
     // by default, if there was no name, it would just be called 'local'
     passport.use('local-login', new LocalStrategy({
-        // by default, local strategy uses username and password
-        usernameField: 'username',
+        // by default, local strategy uses username/email and password
+        usernameField: 'usernameOrEmail',
         passwordField: 'password',
         passReqToCallback: true // allows us to pass back the entire request to the callback
     },
-    function (req, username, password, done) {
+    function (req, usernameOrEmail, password, done) {
         // convert to lowercase
-        username = username ? username.toLowerCase() : username;
+        usernameOrEmail = usernameOrEmail ? usernameOrEmail.toLowerCase() : usernameOrEmail;
 
-        // find a user whose username is the same as the forms username
+        // find a user whose username/email is the same as the forms username/email
         // we are checking to see if the user trying to login already exists
-        User.findOne({ 'internalName': username }, function (err, user) {
+        const orOption = { $or: [{ 'username': usernameOrEmail.toLowerCase() }, { 'email': usernameOrEmail.toLowerCase()}] };
+        User.findOne(orOption, function (err, foundUser) {
             // if error occurred
             if (err) {
                 return done(err);
             } 
 
             // if no user is found, return the message
-            if (!user) {
+            if (!foundUser) {
                 // req.flash is the way to set flashdata using connect-flash
-                return done(null, false, 'User not found');
+                return done(null, false, { 'message': 'User not found' });
             }
 
             // compare equality
-            User.comparePassword(user, password, function(err, isMatch) {
+            foundUser.comparePassword(password, function(err, isMatch) {
                 // if the user is found but the password is wrong or an error occurred
 				if (err || !isMatch) {
                     // create the login message and save it to session as flashdata
@@ -112,54 +107,26 @@ module.exports = function () {
 				}
 
                 // set updated values 
-                var updatedValues = {
-                    'lastLogin': new Date()
-                };
+                foundUser.lastLogin = new Date();
 
                 // update user
-                User.update(user, updatedValues, function(err, updatedUser) {
+                foundUser.save(function(err) {
                     // if error occurred
                     if (err) {
                         return done(err);
                     }
-                    else if(updatedUser) {
-                        // save the id since it will be lost when going to object
-                        // hide the password for security purposes
-                        var id = updatedUser._id;
-                        updatedUser = User.toObject(updatedUser, { 'hide': 'password lastPasswords internalName created' });
-                        updatedUser._id = id;
-
-                        // login
-                        req.login(updatedUser, function (err) {
-                            // if error occurred
-                            if (err) {
-                                return done(err);
-                            } 
-                            else {
-                                // all is well, return successful user
-                                return done(null, updatedUser);
-                            }
-                        });
-                    }
-                    else {
-                        // save the id since it will be lost when going to object
-                        // hide the password for security purposes
-                        var id = user._id;
-                        user = User.toObject(user, { 'hide': 'password internalName created' });
-                        user._id = id;
-
-                        // login
-                        req.login(user, function (err) {
-                            // if error occurred
-                            if (err) {
-                                return done(err);
-                            } 
-                            else {
-                                // all is well, return successful user
-                                return done(null, user);
-                            }
-                        });
-                    }
+                    
+                    // login
+                    req.login(foundUser, function (err) {
+                        // if error occurred
+                        if (err) {
+                            return done(err);
+                        } 
+                        else {
+                            // all is well, return successful user
+                            return done(null, foundUser);
+                        }
+                    });
                 });
 			});	
         });

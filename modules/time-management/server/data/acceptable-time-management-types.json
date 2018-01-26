@@ -1,0 +1,38 @@
+[
+    {
+        "type": "PTO (Whole Day)",
+        "inOffice": false
+    },
+    {
+        "type": "PTO (Morning)",
+        "inOffice": true
+    },
+    {
+        "type": "PTO (Afternoon)",
+        "inOffice": true
+    },
+    {
+        "type": "WFH (Whole Day)",
+        "inOffice": false
+    },
+    {
+        "type": "WFH (Morning)",
+        "inOffice": true
+    },
+    {
+        "type": "WFH (Afternoon)",
+        "inOffice": true
+    },
+    {
+        "type": "Out Sick",
+        "inOffice": false
+    },
+    {
+        "type": "In Late",
+        "inOffice": true
+    },
+    {
+        "type": "Out Early",
+        "inOffice": true
+    }
+]
