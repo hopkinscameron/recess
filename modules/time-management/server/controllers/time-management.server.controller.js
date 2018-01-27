@@ -444,7 +444,7 @@ function getUserTimeManagement(user, todayOnly) {
                     dateString = `${split[2]}-${split[0]}-${split[1]}`;
 
                     var todayDateTypes = _.find(userDates, { 'date': dateString });
-                    resolve(todayDateTypes.types);
+                    resolve(todayDateTypes ? todayDateTypes.types : []);
                 }
                 else {
                     var dates = [];
