@@ -7,14 +7,16 @@
             <!-- Begin Body -->
             <div class="card card--border--none card--radius--none card-body box-shadow--sm card-min-height">
                 <div class="row">
-                    <!-- Begin iOS -->
+                    <!-- Begin iOS /dist/img/ -->
                     <div id="download-header" class="col-md-6">
-                        <img src="/modules/core/client/img/icons/apple.png" class="img-fluid btn-cursor-pointer w-100" alt="apple" ng-click="downloadApp('apple')">
+                        <img src="/dist/img/apple.png" class="img-fluid btn-cursor-pointer w-100" alt="apple" ng-click="downloadApp('apple')" ng-if="env == 'developmentp'">
+                        <img src="/modules/core/client/img/icons/apple.png" class="img-fluid btn-cursor-pointer w-100" alt="apple" ng-click="downloadApp('apple')" ng-if="env == 'development'">
                     </div>
                     <!-- End iOS -->
                     <!-- Begin Android -->
                     <div id="download-header" class="col-md-6">
-                        <img src="/modules/core/client/img/icons/android.png" class="img-fluid btn-cursor-pointer w-100" alt="android" ng-click="downloadApp('android')">
+                        <img src="/dist/img/android.png" class="img-fluid btn-cursor-pointer w-100" alt="android" ng-click="downloadApp('android')" ng-if="env == 'developmentp'">
+                        <img src="/modules/core/client/img/icons/android.png" class="img-fluid btn-cursor-pointer w-100" alt="android" ng-click="downloadApp('android')" ng-if="env == 'development'">
                     </div>
                     <!-- End Android -->
                 </div>

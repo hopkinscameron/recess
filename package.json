@@ -12,8 +12,8 @@
     "url": "https://github.com/hopkinscameron/recess.git"
   },
   "engines": {
-    "node": ">=8.4.0",
-    "npm": ">=5.3.0"
+    "node": "~8.4.0",
+    "npm": "~5.3.0"
   },
   "scripts": {
     "start": "node server.js"
