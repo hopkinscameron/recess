@@ -22,7 +22,7 @@ var service = {
     applicationName: applicationName,
     applicationEnvironment: window.env,
     applicationModuleName: applicationModuleName,
-    applicationModuleVendorDependencies: ['ngRoute', 'ngSanitize', 'ngAnimate', 'angular-loading-bar', 'ui.bootstrap', 'chart.js'],
+    applicationModuleVendorDependencies: ['ngRoute', 'ngSanitize', 'ngAnimate', 'ui.bootstrap'],
     registerModule: registerModule,
     applicationThemeOne: applicationThemeOne
 };
