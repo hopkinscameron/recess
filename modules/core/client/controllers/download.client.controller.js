@@ -4,15 +4,15 @@
 var coreModule = angular.module('core');
 
 // create the controller
-coreModule.controller('DownloadController', ['$scope', '$rootScope', '$compile', '$location', '$window', '$timeout', 'Service', function ($scope, $rootScope, $compile, $location, $window, $timeout, Service) {
+coreModule.controller('DownloadController', ['$scope', '$rootScope', '$compile', '$location', '$window', '$timeout', function ($scope, $rootScope, $compile, $location, $window, $timeout) {
     // determines if a page has already sent a request for load
     var pageRequested = false;
 
     // set jQuery
     $ = window.jQuery;
 
-    // set the path
-    Service.afterPath = $location.path();
+    // set the page title
+    $scope.pageTitle = 'Recess';
 
     // holds the error
     $scope.error = {
@@ -49,17 +49,5 @@ coreModule.controller('DownloadController', ['$scope', '$rootScope', '$compile',
 
         // set page fully loaded
         $scope.pageFullyLoaded = true;
-
-        // show the page after a timeout
-        $timeout(showPage, $rootScope.$root.showPageTimeout);
-    };
-
-    // shows the page
-    function showPage() {
-        // check if collapsing is already occuring
-        if(!angular.element('#pageShow').hasClass('collapsing')) {
-            // show the page
-            angular.element('#pageShow').collapse('show');
-        }
     };
 }]);

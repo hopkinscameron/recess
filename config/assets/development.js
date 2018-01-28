@@ -7,10 +7,7 @@ module.exports = {
                 // bower:css
                 'public/lib/bootstrap/bootstrap.css',
                 'public/lib/bootstrap/bootstrap-reboot.css',
-                'public/lib/bootstrap/bootstrap-grid.css',
-                'public/lib/angular-loading-bar/loading-bar.css',
-                'public/lib/font-awesome/font-awesome.css',
-                'public/lib/sweet-alert-2/sweetalert2.css'
+                'public/lib/bootstrap/bootstrap-grid.css'
                 // endbower
             ],
             js: [
@@ -25,17 +22,7 @@ module.exports = {
                 'public/lib/angular/angular-touch.js',
                 'public/lib/angular/angular-mocks.js',
                 'public/lib/angular/angular-resource.js',
-                'public/lib/angular-loading-bar/loading-bar.js',
-                'public/lib/angular-ui-bootstrap/ui-bootstrap-tpls-2.5.0.js',
-                'public/lib/tinymce/tinymce.js',
-                'public/lib/angular-ui-tinymce/src/tinymce.js',
-                'public/lib/bootstrap/bootstrap.js',
-                'public/lib/chart.js/Chart.js',
-                'public/lib/angular-chart/angular-chart.js',
-                'public/lib/lodash/lodash.js',
-                'public/lib/waypoints/jquery.waypoints.js',
-                'public/lib/sweet-alert-2/sweetalert2.js',
-                'public/lib/owasp-password-strength-test/owasp-password-strength-test.js'
+                'public/lib/angular-ui-bootstrap/ui-bootstrap-tpls-2.5.0.js'
                 // endbower
             ],
             tests: ['public/lib/angular/angular-mocks.js']
