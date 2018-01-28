@@ -14,6 +14,9 @@ coreModule.controller('DownloadController', ['$scope', '$rootScope', '$compile',
     // set the page title
     $scope.pageTitle = 'Recess';
 
+    // set the enviornment
+    $scope.env = window.env;
+
     // holds the error
     $scope.error = {
         'error': false,

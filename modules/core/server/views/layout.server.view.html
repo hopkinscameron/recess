@@ -98,6 +98,12 @@
         </noscript>
         <!-- End No Script For Alerts -->
 
+        <!-- Begin Embedding The User Object -->
+        <script type="text/javascript">
+            var env = "{{ env }}";
+        </script>
+        <!-- End Embedding The User Object -->
+
         {{#if livereload}}
         <!-- Begin Livereload script rendered -->
         <script type="text/javascript" src="{{host}}:35729/livereload.js"></script>

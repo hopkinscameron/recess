@@ -13,10 +13,6 @@ var // lodash
 	gulp = require('gulp'),
 	// loading all gulp plugins
 	gulpLoadPlugins = require('gulp-load-plugins'),
-	// gulp utility
-	gutil = require('gulp-util'),
-	// babel
-	babel = require('gulp-babel'),
 	// to run a sequence of gulp tasks
 	runSequence = require('run-sequence'),
 	// loading all plugins
@@ -118,7 +114,7 @@ gulp.task('eslint', function () {
 });
 
 // JS minifying task
-gulp.task('uglify', function (cb) {
+gulp.task('uglify', function () {
 	var assets = _.union(
 		defaultAssets.client.js,
 		defaultAssets.client.templates
@@ -128,14 +124,10 @@ gulp.task('uglify', function (cb) {
 	del.sync(['public/dist/recess*']);
 
 	return gulp.src(assets)
-		.pipe(babel({
-			presets: ['env']
-		}))
 		.pipe(plugins.ngAnnotate())
 		.pipe(plugins.uglify({
 			mangle: false
 		}))
-		.on('error', function (err) { gutil.log(gutil.colors.red('[Error]'), err.toString()); })
 		.pipe(plugins.concat('recess.min.js'))
 		//.pipe(plugins.rev())
 		.pipe(gulp.dest('public/dist'));
@@ -339,6 +331,15 @@ gulp.task('watch', function () {
 	gulp.watch(defaultAssets.client.js).on('change', plugins.refresh.changed);
 	gulp.watch(defaultAssets.client.css).on('change', plugins.refresh.changed);
 	gulp.watch(defaultAssets.client.sass, ['sass']).on('change', plugins.refresh.changed);
+	
+	// MEAN
+	/*
+	gulp.watch(defaultAssets.server.allJS, ['eslint']).on('change', plugins.refresh.changed);
+	gulp.watch(defaultAssets.client.js, ['eslint']).on('change', plugins.refresh.changed);
+	gulp.watch(defaultAssets.client.css, ['csslint']).on('change', plugins.refresh.changed);
+	gulp.watch(defaultAssets.client.sass, ['sass', 'csslint']).on('change', plugins.refresh.changed);
+	gulp.watch(defaultAssets.client.less, ['less', 'csslint']).on('change', plugins.refresh.changed);
+	*/
 
 	// if in production, watch for templatecache
 	if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'developmentp') {
