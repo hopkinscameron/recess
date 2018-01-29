@@ -10,8 +10,6 @@ module.exports = {
     db: {
         uri: process.env.MLAB_MONGODB_DEV || 'mongodb://localhost:27017/recessDev',
         options: {
-            user: '',
-            pass: '',
             db: { 
                 native_parser: true 
             },

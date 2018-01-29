@@ -39,6 +39,7 @@ module.exports.connect = function (callback) {
     // setup the mongoose promise
     mongoose.Promise = config.db.promise;
 
+    /*
     // set up the mongoose db connection
     mongoose.connect(config.db.uri, config.db.options);
     var db = mongoose.connection;
@@ -65,6 +66,32 @@ module.exports.connect = function (callback) {
         console.log('----- ');
         console.log('----- ' + clc.success('Done Initializing Mongodb'));
         console.log('----- ');
+    });
+    */
+    
+    // connect to mongodb
+    var db = mongoose.connect(config.db.uri, config.db.options, function (err) {
+        // log error
+        if (err) {
+            console.error(clc.error('Could not connect to MongoDB!'));
+            console.log(clc.error(err));
+
+            // exit from the application
+            process.exit();
+        } 
+        else {
+            // Enabling mongoose debug mode if required
+            mongoose.set('debug', config.db.debug);
+
+            console.log('----- ');
+            console.log('----- ' + clc.success('Done Initializing Mongodb'));
+            console.log('----- ');
+
+            // if a callback
+            if (callback) {
+                callback(db);
+            }
+        }
     });
 };
 
