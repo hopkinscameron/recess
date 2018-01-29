@@ -29,7 +29,7 @@ function seedDB() {
 module.exports.init = function init(callback) {
     // connect to mongodb
     mongoose.connect(function (db) {
-        // Initialize Models
+        // initialize Models
         mongoose.loadModels(seedDB);
 
         // initialize express

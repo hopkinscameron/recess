@@ -22,7 +22,7 @@ module.exports.loadModels = function (callback) {
         require(path.resolve(modelPath));
     });
 
-    // if callbal
+    // if callback
     if (callback) {
         callback();
     }

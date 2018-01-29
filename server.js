@@ -4,7 +4,7 @@
  * Module dependencies.
  */
 // initialize enviornment variables
-require('dotenv').config()
+require('dotenv').config();
 
 var // configure the app
     app = require('./config/lib/app'),
