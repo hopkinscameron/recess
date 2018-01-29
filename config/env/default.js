@@ -14,7 +14,8 @@ module.exports = {
     db: {
         promise: global.Promise,
         options: {
-            
+            // TODO: only use this in less than 5.0 versions
+            useMongoClient: true
         }
     },
     port: process.env.PORT || 3000,
