@@ -30,10 +30,9 @@ coreModule.controller('DownloadController', ['$scope', '$rootScope', '$compile',
 
     // downloads app
     $scope.downloadApp = function (platform) {
-        // if apple
+        // based on the platform
         if(platform == 'apple') {
-            // redirect to download page
-            $window.location.href = '/dist/ios/recess.ipa';
+            window.alert('Click the provided link');
         }
         else if(platform == 'android') {
             window.alert('Sorry, this platform isn\'t available yet');
