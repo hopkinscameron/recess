@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>recessreact.ipa</key>
+	<array>
+		<dict>
+			<key>architectures</key>
+			<array>
+				<string>arm64</string>
+			</array>
+			<key>certificate</key>
+			<dict>
+				<key>SHA1</key>
+				<string>03FADF8080DE0593BB10340F7C0CF91E1A5EAA02</string>
+				<key>dateExpires</key>
+				<string>1/26/19</string>
+				<key>type</key>
+				<string>iOS Distribution</string>
+			</dict>
+			<key>entitlements</key>
+			<dict>
+				<key>application-identifier</key>
+				<string>NQ739FUVTH.org.reactjs.native.example.recessreact</string>
+				<key>com.apple.developer.team-identifier</key>
+				<string>NQ739FUVTH</string>
+				<key>get-task-allow</key>
+				<false/>
+				<key>keychain-access-groups</key>
+				<array>
+					<string>NQ739FUVTH.org.reactjs.native.example.recessreact</string>
+				</array>
+			</dict>
+			<key>name</key>
+			<string>recessreact.app</string>
+			<key>profile</key>
+			<dict>
+				<key>UUID</key>
+				<string>873e99cc-2355-440d-9583-ca7b96109971</string>
+				<key>name</key>
+				<string>Recess-Dev</string>
+			</dict>
+			<key>team</key>
+			<dict>
+				<key>id</key>
+				<string>NQ739FUVTH</string>
+				<key>name</key>
+				<string>Cameron Hopkins</string>
+			</dict>
+		</dict>
+	</array>
+</dict>
+</plist>
