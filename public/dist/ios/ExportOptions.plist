@@ -7,7 +7,7 @@
 	<key>manifest</key>
 	<dict>
 		<key>appURL</key>
-		<string>https://recess-prod-test.azurewebsites.net/dist/app/recess.ipa</string>
+		<string>https://recess-prod-test.azurewebsites.net/dist/ios/recess.ipa</string>
 		<key>displayImageURL</key>
 		<string>https://recess-prod-test.azurewebsites.net/dist/img/logo.png</string>
 		<key>fullSizeImageURL</key>
