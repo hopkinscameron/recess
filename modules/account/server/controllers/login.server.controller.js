@@ -18,9 +18,7 @@ var // the path
     // generator for a strong password
     generatePassword = require('generate-password'),
     // tester for ensuring a stronger password
-    owasp = require('owasp-password-strength-test'),
-    // the User model
-    User = require(path.resolve('./modules/account/server/models/model-user'));
+    owasp = require('owasp-password-strength-test');
 
 // configure owasp
 owasp.config(config.shared.owasp);
@@ -73,24 +71,36 @@ exports.signUp = function (req, res, next) {
             }
 
             // send bad request
-            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+            const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
+            res.status(400).send(e);
+            errorHandler.logError(req, e);
         } 
         else {
             // authenticate the user with a signup
-            passport.authenticate('local-signup', { failureFlash : true }, function (err, user) {
+            passport.authenticate('local-signup', { failureFlash : true }, function (err, user, info) {
                 // if error occurred
                 if(err) {
                     // send internal error
                     res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                     console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                    errorHandler.logError(req, err);
                 }
                 // if user is not signed up 
-                else if(!user) {
+                else if(!user && info) {
                     // return not signed up 
-                    res.json({ 'd': { error: true, title: 'Username already taken.', message: 'Username already taken.' } });
+                    const e = { error: true, title: info.message, message: info.message };
+                    res.json({ 'd': e });
+                    errorHandler.logError(req, e);
+                }
+                // if user is not signed up
+                else if(!user && !info) {
+                    // return not signed up
+                    const e = { error: true, title: 'Something went wrong when trying to sign you up.', message: 'Something went wrong when trying to sign you up.' };
+                    res.json({ 'd': e });
+                    errorHandler.logError(req, e);
                 }
                 else {
-                    // return authenticated
+                    // return success
                     res.json({ 'd': { title: errorHandler.getErrorTitle({ code: 200 }), message: errorHandler.getGenericErrorMessage({ code: 200 }) + ' Successful sign up.' } });
                 }
             })(req, res, next);
@@ -109,16 +119,21 @@ exports.login = function (req, res, next) {
             // send internal error
             res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
             console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+            errorHandler.logError(req, err);
         }
         // if user is not authenticated 
         else if(!user && info) {
             // return not authenticated
-            res.json({ 'd': { error: true, title: info.message, message: info.message } });
+            const e = { error: true, title: info.message, message: info.message };
+            res.json({ 'd': e });
+            errorHandler.logError(req, e);
         }
         // if user is not authenticated 
         else if(!user && !info) {
             // return not authenticated
+            const e = { error: true, title: 'Incorrect username/password.', message: 'Incorrect username/password.' };
             res.json({ 'd': { error: true, title: 'Incorrect username/password.', message: 'Incorrect username/password.' } });
+            errorHandler.logError(req, e);
         }
         else {
             // return authenticated
@@ -146,7 +161,9 @@ exports.generateRandomPassphrase = function (req, res, next) {
     }
     else {
         // create forbidden error
-        res.status(403).send({ title: errorHandler.getErrorTitle({ code: 403 }), message: errorHandler.getGenericErrorMessage({ code: 403 }) });
+        const e = { title: errorHandler.getErrorTitle({ code: 403 }), message: errorHandler.getGenericErrorMessage({ code: 403 }) };
+        res.status(403).send(e);
+        errorHandler.logError(req, e);
     }
 };
 
