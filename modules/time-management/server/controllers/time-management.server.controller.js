@@ -472,7 +472,7 @@ function getUserTimeManagement(user, todayOnly) {
                 }
             }
             else {
-                resolve({});
+                resolve([]);
             }
         });
     });
