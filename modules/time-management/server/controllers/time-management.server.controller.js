@@ -457,6 +457,7 @@ function getUserTimeManagement(user, todayOnly) {
                     var dateString = today.toLocaleDateString('en-us', { day: 'numeric', month: 'numeric', year: 'numeric' });
                     var split = dateString.split('/');
                     split[0] = split[0] < 10 ? '0' + split[0] : split[0];
+                    split[1] = split[1] < 10 ? '0' + split[1] : split[1];
                     dateString = `${split[2]}-${split[0]}-${split[1]}`;
 
                     var todayDateTypes = _.find(userDates, { 'date': dateString });
