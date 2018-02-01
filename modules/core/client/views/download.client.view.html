@@ -9,8 +9,10 @@
                 <div class="row">
                     <!-- Begin iOS /dist/img/ -->
                     <div id="download-header" class="col-md-6">
-                        <img src="/dist/img/apple.png" class="img-fluid btn-cursor-pointer w-100" alt="apple" ng-click="downloadApp('apple')" ng-if="env == 'developmentp'">
-                        <img src="/modules/core/client/img/icons/apple.png" class="img-fluid btn-cursor-pointer w-100" alt="apple" ng-click="downloadApp('apple')" ng-if="env == 'development'">
+                        <a href="itms-services://?action=download-manifest&url=https://dl.dropboxusercontent.com/s/2n1066wzcul3ech/manifest.plist">
+                            <img src="/dist/img/apple.png" class="img-fluid btn-cursor-pointer w-100" alt="apple" ng-if="env == 'developmentp'">
+                            <img src="/modules/core/client/img/icons/apple.png" class="img-fluid btn-cursor-pointer w-100" alt="apple" ng-if="env == 'development'">
+                        </a>
                     </div>
                     <!-- End iOS -->
                     <!-- Begin Android -->

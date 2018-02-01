@@ -124,7 +124,9 @@ exports.shortenUrl = function (req, res) {
             }
 
             // send bad request
-            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+            const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
+            res.status(400).send(e);
+            errorHandler.logError(req, e);
         }
         else {
             // create request
@@ -155,6 +157,7 @@ exports.shortenUrl = function (req, res) {
                 // send internal error
                 res.status(500).send({ error: true, title: responseSU.error.code, message: responseSU.error.message  });
                 console.log(clc.error(responseSU.error.message));
+                errorHandler.logError(req, err);
             });
         }
     });
@@ -183,6 +186,7 @@ exports.readDB = function (req, res, next) {
                     // send internal error
                     res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                     console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                    errorHandler.logError(req, err);
                 }
                 else {
                     try {
@@ -199,6 +203,7 @@ exports.readDB = function (req, res, next) {
                         // send internal error
                         res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                         console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                        errorHandler.logError(req, err);
                     }
                 }
             });

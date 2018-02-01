@@ -5,8 +5,12 @@
  */
 var // the path
     path = require('path'),
+    // clc for console logging
+    clc = require(path.resolve('./config/lib/clc')),
     // error message center
-    errorMessageCenter = require(path.resolve('./config/lib/errorMessages'));
+    errorMessageCenter = require(path.resolve('./config/lib/errorMessages')),
+    // the Error model
+    ErrorModel = require('mongoose').model('ErrorModel');
 
 /**
  * Get the error title from error object
@@ -134,4 +138,125 @@ exports.getDetailedErrorMessage = function (err) {
     }
 
     return message;
+};
+
+/**
+ * Save the error
+ */
+exports.logError = function(req, error) {
+    // set error message
+    const errorMessage = exports.getDetailedErrorMessage(error);
+
+    // the date/time right now
+    const rightNow = new Date().toLocaleString('en-us', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+    // if there is a user
+    if(req.user) {
+        // find Error for user
+        ErrorModel.findOne({ 'userId': req.user.id }, function(err, foundError) {
+            // if error occurred
+            if (err) {
+                // log internal error
+                console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+            }
+            else if(foundError) {
+                // holds the final dates
+                var finalArray = foundError.userIssues;
+
+                // create new error
+                var newError = {
+                    'date': rightNow,
+                    'details': errorMessage
+                };
+
+                // push new error
+                finalArray.push(newError);
+
+                // update user
+                foundError.update({ 'errors': finalArray }).exec(function(err) {
+                    // if error occurred
+                    if (err) {
+                        // log internal error
+                        console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                    }
+                });
+            }
+            else {
+                // create the error
+                var newError = new ErrorModel({
+                    'user': req.user.id,
+                    'username': req.user.username,
+                    'userIssues': [
+                        {
+                            'date': rightNow,
+                            'details': errorMessage
+                        }
+                    ]
+                });
+
+                // save the user
+                newError.save(function(err) {
+                    // if error occurred
+                    if (err) {
+                        // log internal error
+                        console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                    }
+                });
+            }
+        });
+    }
+    else {
+        // find Error for user
+        ErrorModel.findOne({ 'userId': 'genericId' }, function(err, foundError) {
+            // if error occurred
+            if (err) {
+                // log internal error
+                console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+            }
+            else if(foundError) {
+                // holds the final dates
+                var finalArray = foundError.userIssues;
+
+                // create new error
+                var newError = {
+                    'date': rightNow,
+                    'details': errorMessage
+                };
+
+                // push new error
+                finalArray.push(newError);
+
+                // update user
+                foundError.update({ 'errors': finalArray }).exec(function(err) {
+                    // if error occurred
+                    if (err) {
+                        // log internal error
+                        console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                    }
+                });
+            }
+            else {
+                // create the error
+                var newError = new ErrorModel({
+                    'userId': 'genericId',
+                    'username': 'genericId',
+                    'userIssues': [
+                        {
+                            'date': rightNow,
+                            'details': errorMessage
+                        }
+                    ]
+                });
+
+                // save the user
+                newError.save(function(err) {
+                    // if error occurred
+                    if (err) {
+                        // log internal error
+                        console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                    }
+                });
+            }
+        });
+    }
 };

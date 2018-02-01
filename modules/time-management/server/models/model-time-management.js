@@ -53,7 +53,7 @@ var TimeManagementSchema = new Schema ({
  * Hook a pre validate method to test the validation
  */
 TimeManagementSchema.pre('validate', function (next) {
-    // set user
+    // set this
     var tm = this;
 
     // regex for date format
@@ -74,9 +74,9 @@ TimeManagementSchema.pre('validate', function (next) {
 
                     // check if the value exist
                     _.some(acceptableTMTypes, function(aType) {
-                        const found = aType.toLowerCase() === type.toLowerCase();
+                        const found = aType.type.toLowerCase() === type.toLowerCase();
                         if(found) {
-                            foundType = aType;
+                            foundType = aType.type;
                         }
                         return found;
                     });

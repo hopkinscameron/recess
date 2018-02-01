@@ -35,6 +35,7 @@ exports.getTimeOff = function (req, res) {
             // send internal error
             res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
             console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+            errorHandler.logError(req, err);
         }
         else {
             // send data
@@ -72,7 +73,9 @@ exports.addTimeOff = function (req, res) {
             }
 
             // send bad request
-            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+            const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
+            res.status(400).send(e);
+            errorHandler.logError(req, e);
         }
         else {
             // set the date and reason
@@ -86,6 +89,7 @@ exports.addTimeOff = function (req, res) {
                     // send internal error
                     res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                     console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                    errorHandler.logError(req, err);
                 }
                 else if(foundTimeManagement) {
                     // determines if should update
@@ -129,6 +133,7 @@ exports.addTimeOff = function (req, res) {
                                 // send internal error
                                 res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                                 console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                                errorHandler.logError(req, err);
                             }
                             else {
                                 // send success
@@ -153,13 +158,14 @@ exports.addTimeOff = function (req, res) {
                         ]
                     });
 
-                    // save the user
+                    // save the tm
                     newTM.save(function(err) {
                         // if error occurred
                         if (err) {
                             // send internal error
                             res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                             console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                            errorHandler.logError(req, err);
                         }
                         else {
                             // send success
@@ -201,7 +207,9 @@ exports.deleteTimeOff = function (req, res) {
             }
 
             // send bad request
-            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+            const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
+            res.status(400).send(e);
+            errorHandler.logError(req, e);
         }
         else {
             // set the date
@@ -215,6 +223,7 @@ exports.deleteTimeOff = function (req, res) {
                     // send internal error
                     res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                     console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                    errorHandler.logError(req, err);
                 }
                 else if(foundTimeManagement) {
                     // determines if should update
@@ -250,6 +259,7 @@ exports.deleteTimeOff = function (req, res) {
                                     // send internal error
                                     res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                                     console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                                    errorHandler.logError(req, err);
                                 }
                                 else {
                                     // send success
@@ -287,6 +297,7 @@ exports.getUsersTimeOff = function (req, res) {
             // send internal error
             res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
             console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+            errorHandler.logError(req, err);
         }
         else {
             // get all users time management
@@ -306,6 +317,7 @@ exports.getUsersTimeOffToday = function (req, res) {
             // send internal error
             res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
             console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+            errorHandler.logError(req, err);
         }
         else {
             // get all users time management
@@ -327,6 +339,7 @@ exports.getTimeOffTypes = function (req, res) {
         // send internal error
         res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
         console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+        errorHandler.logError(req, err);
     });
 };
 
@@ -345,6 +358,7 @@ exports.readDB = function (req, res, next) {
                     // send internal error
                     res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                     console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                    errorHandler.logError(req, err);
                 }
                 else {
                     try {
@@ -361,6 +375,7 @@ exports.readDB = function (req, res, next) {
                         // send internal error
                         res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                         console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                        errorHandler.logError(req, err);
                     }                    
                 }
             });
@@ -429,6 +444,7 @@ function getUserTimeManagement(user, todayOnly) {
             if (err) {
                 // send internal error
                 console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                errorHandler.logError(req, err);
                 reject(`Could not get ${user.username}'s time management`);
             }
             else if(foundTimeManagement) {

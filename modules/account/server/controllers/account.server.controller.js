@@ -89,7 +89,9 @@ exports.updateProfile = function (req, res) {
                 }
 
                 // send bad request
-                res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+                const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
+                res.status(400).send(e);
+                errorHandler.logError(req, e);
             } 
             else {
                 // update the values
@@ -105,6 +107,7 @@ exports.updateProfile = function (req, res) {
                         // send internal error
                         res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                         console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                        errorHandler.logError(req, err);
                     }
                     else {
                         // read the profile
@@ -149,7 +152,9 @@ exports.updatePassword = function (req, res) {
             }
 
             // send bad request
-            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+            const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
+            res.status(400).send(e);
+            errorHandler.logError(req, e);
         } 
         else {
             // compare current password equality
@@ -159,10 +164,13 @@ exports.updatePassword = function (req, res) {
                     // send internal error
                     res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                     console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                    errorHandler.logError(req, err);
                 }
                 else if(!isMatch) {
                     // return error
-                    res.json({ 'd': { error: true, title: errorHandler.getErrorTitle({ code: 200 }), message: 'Current password does not match.' } });
+                    const e = { error: true, title: errorHandler.getErrorTitle({ code: 200 }), message: 'Current password does not match.' };
+                    res.json({ 'd': e });
+                    errorHandler.logError(req, e);
                 }
                 else {
                     // save new password
@@ -175,6 +183,7 @@ exports.updatePassword = function (req, res) {
                             // send internal error
                             res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                             console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                            errorHandler.logError(req, err);
                         }
                         else {
                             // read the profile
@@ -213,7 +222,9 @@ exports.resetPassword = function (req, res) {
             }
 
             // send bad request
-            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+            const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
+            res.status(400).send(e);
+            errorHandler.logError(req, e);
         } 
         else {
             // find user based on username
@@ -235,16 +246,19 @@ exports.resetPassword = function (req, res) {
                             // send internal error
                             res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                             console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                            errorHandler.logError(req, err);
                         }
                         else {
                             // return password reset
-                            res.json({ 'd': { error: true, title: errorHandler.getErrorTitle({ code: 200 }), message: 'Password reset was a success!' } });
+                            res.json({ 'd': { title: errorHandler.getErrorTitle({ code: 200 }), message: 'Password reset was a success!' } });
                         }
                     });
                 }
                 else {
                     // return error
-                    res.json({ 'd': { error: true, title: errorHandler.getErrorTitle({ code: 200 }), message: `No user by the name of '${req.body.username}' was found.` } });
+                    const e = { error: true, title: errorHandler.getErrorTitle({ code: 200 }), message: `No user by the name of '${req.body.username}' was found.` };
+                    res.json({ 'd': e });
+                    errorHandler.logError(req, e);
                 }
             });
         }
@@ -272,6 +286,7 @@ exports.readDB = function (req, res, next) {
                     // send internal error
                     res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                     console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                    errorHandler.logError(req, err);
                 }
                 else {
                     try {
@@ -294,6 +309,7 @@ exports.readDB = function (req, res, next) {
                         // send internal error
                         res.status(500).send({ error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getGenericErrorMessage(err) });
                         console.log(clc.error(errorHandler.getDetailedErrorMessage(err)));
+                        errorHandler.logError(req, err);
                     }
                 }
             });
