@@ -225,6 +225,7 @@ module.exports.initSession = function (app, db) {
         secret: config.sessionSecret,
         cookie: {
             maxAge: config.sessionCookie.maxAge,
+            expires: config.sessionCookie.expires,
             httpOnly: config.sessionCookie.httpOnly,
             secure: config.sessionCookie.secure && config.secure.ssl
         },
