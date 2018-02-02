@@ -71,9 +71,9 @@ exports.signUp = function (req, res, next) {
             }
 
             // send bad request
-            const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
-            res.status(400).send(e);
-            errorHandler.logError(req, e);
+            err = new Error(errorText);
+            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+            errorHandler.logError(req, err);
         } 
         else {
             // authenticate the user with a signup
@@ -88,16 +88,17 @@ exports.signUp = function (req, res, next) {
                 // if user is not signed up 
                 else if(!user && info) {
                     // return not signed up 
-                    const e = { error: true, title: info.message, message: info.message };
-                    res.json({ 'd': e });
-                    errorHandler.logError(req, e);
+                    err = new Error(info.message);
+                    res.json({ 'd': { error: true, title: info.message, message: info.message } });
+                    errorHandler.logError(req, err);
                 }
                 // if user is not signed up
                 else if(!user && !info) {
                     // return not signed up
-                    const e = { error: true, title: 'Something went wrong when trying to sign you up.', message: 'Something went wrong when trying to sign you up.' };
-                    res.json({ 'd': e });
-                    errorHandler.logError(req, e);
+                    const errorText = 'Something went wrong when trying to sign you up. Please try again later.';
+                    err = new Error(errorText);
+                    res.json({ 'd': { error: true, title: errorText, message: errorText } });
+                    errorHandler.logError(req, err);
                 }
                 else {
                     // return success
@@ -124,20 +125,21 @@ exports.login = function (req, res, next) {
         // if user is not authenticated 
         else if(!user && info) {
             // return not authenticated
-            const e = { error: true, title: info.message, message: info.message };
-            res.json({ 'd': e });
-            errorHandler.logError(req, e);
+            err = new Error(info.message);
+            res.json({ 'd': { error: true, title: errorHandler.getErrorTitle(err), message: errorHandler.getDetailedErrorMessage(err) } });
+            errorHandler.logError(req, err);
         }
         // if user is not authenticated 
         else if(!user && !info) {
             // return not authenticated
-            const e = { error: true, title: 'Incorrect username/password.', message: 'Incorrect username/password.' };
-            res.json({ 'd': { error: true, title: 'Incorrect username/password.', message: 'Incorrect username/password.' } });
-            errorHandler.logError(req, e);
+            const errorText = 'Incorrect username/password';
+            err = new Error(errorText);
+            res.json({ 'd': { error: true, title: errorText, message: errorText } });
+            errorHandler.logError(req, err);
         }
         else {
             // return authenticated
-            res.json({ 'd': { title: errorHandler.getErrorTitle({ code: 200 }), message: errorHandler.getGenericErrorMessage({ code: 200 }) + ' Successful login.' } });
+            res.json({ title: errorHandler.getErrorTitle({ code: 200 }), message: errorHandler.getGenericErrorMessage({ code: 200 }) + ' Successful login.' });
         }
     })(req, res, next);
 };
@@ -161,9 +163,9 @@ exports.generateRandomPassphrase = function (req, res, next) {
     }
     else {
         // create forbidden error
-        const e = { title: errorHandler.getErrorTitle({ code: 403 }), message: errorHandler.getGenericErrorMessage({ code: 403 }) };
-        res.status(403).send(e);
-        errorHandler.logError(req, e);
+        err = new Error(errorHandler.getGenericErrorMessage({ code: 403 }));
+        res.status(403).send({ title: errorHandler.getErrorTitle({ code: 403 }), message: errorHandler.getGenericErrorMessage({ code: 403 }) });
+        errorHandler.logError(req, err);
     }
 };
 

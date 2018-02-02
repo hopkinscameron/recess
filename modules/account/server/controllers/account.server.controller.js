@@ -89,9 +89,9 @@ exports.updateProfile = function (req, res) {
                 }
 
                 // send bad request
-                const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
-                res.status(400).send(e);
-                errorHandler.logError(req, e);
+                err = new Error(errorText);
+                res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+                errorHandler.logError(req, err);
             } 
             else {
                 // update the values
@@ -152,9 +152,9 @@ exports.updatePassword = function (req, res) {
             }
 
             // send bad request
-            const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
-            res.status(400).send(e);
-            errorHandler.logError(req, e);
+            err = new Error(errorText);
+            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+            errorHandler.logError(req, err);
         } 
         else {
             // compare current password equality
@@ -168,9 +168,10 @@ exports.updatePassword = function (req, res) {
                 }
                 else if(!isMatch) {
                     // return error
-                    const e = { error: true, title: errorHandler.getErrorTitle({ code: 200 }), message: 'Current password does not match.' };
-                    res.json({ 'd': e });
-                    errorHandler.logError(req, e);
+                    const errorText = 'Current password does not match';
+                    err = new Error(errorText);
+                    res.json({ 'd': { error: true, title: errorText, message: errorText } });
+                    errorHandler.logError(req, err);
                 }
                 else {
                     // save new password
@@ -222,9 +223,9 @@ exports.resetPassword = function (req, res) {
             }
 
             // send bad request
-            const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
-            res.status(400).send(e);
-            errorHandler.logError(req, e);
+            err = new Error(errorText);
+            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+            errorHandler.logError(req, err);
         } 
         else {
             // find user based on username
@@ -256,9 +257,10 @@ exports.resetPassword = function (req, res) {
                 }
                 else {
                     // return error
-                    const e = { error: true, title: errorHandler.getErrorTitle({ code: 200 }), message: `No user by the name of '${req.body.username}' was found.` };
-                    res.json({ 'd': e });
-                    errorHandler.logError(req, e);
+                    const errorText = `No user by the name of '${req.body.username}' was found`;
+                    err = new Error(errorText);
+                    res.json({ 'd': { error: true, title: errorText, message: errorText } });
+                    errorHandler.logError(req, err);
                 }
             });
         }

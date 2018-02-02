@@ -124,9 +124,9 @@ exports.shortenUrl = function (req, res) {
             }
 
             // send bad request
-            const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
-            res.status(400).send(e);
-            errorHandler.logError(req, e);
+            err = new Error(errorText);
+            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+            errorHandler.logError(req, err);
         }
         else {
             // create request
@@ -157,7 +157,7 @@ exports.shortenUrl = function (req, res) {
                 // send internal error
                 res.status(500).send({ error: true, title: responseSU.error.code, message: responseSU.error.message  });
                 console.log(clc.error(responseSU.error.message));
-                errorHandler.logError(req, err);
+                errorHandler.logError(req, responseSU.error);
             });
         }
     });

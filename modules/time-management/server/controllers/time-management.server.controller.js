@@ -73,9 +73,9 @@ exports.addTimeOff = function (req, res) {
             }
 
             // send bad request
-            const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
-            res.status(400).send(e);
-            errorHandler.logError(req, e);
+            err = new Error(errorText);
+            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+            errorHandler.logError(req, err);
         }
         else {
             // set the date and reason
@@ -207,9 +207,9 @@ exports.deleteTimeOff = function (req, res) {
             }
 
             // send bad request
-            const e = { title: errorHandler.getErrorTitle({ code: 400 }), message: errorText };
-            res.status(400).send(e);
-            errorHandler.logError(req, e);
+            err = new Error(errorText);
+            res.status(400).send({ title: errorHandler.getErrorTitle({ code: 400 }), message: errorText });
+            errorHandler.logError(req, err);
         }
         else {
             // set the date

@@ -150,6 +150,13 @@ exports.logError = function(req, error) {
     // the date/time right now
     const rightNow = new Date().toLocaleString('en-us', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
+    // the new error
+    var newErrorObj = {
+        'date': rightNow,
+        'message': errorMessage,
+        'stack': error.stack
+    };
+
     // if there is a user
     if(req.user) {
         // find Error for user
@@ -163,17 +170,11 @@ exports.logError = function(req, error) {
                 // holds the final dates
                 var finalArray = foundError.userIssues;
 
-                // create new error
-                var newError = {
-                    'date': rightNow,
-                    'details': errorMessage
-                };
-
                 // push new error
-                finalArray.push(newError);
+                finalArray.push(newErrorObj);
 
                 // update user
-                foundError.update({ 'errors': finalArray }).exec(function(err) {
+                foundError.update({ 'userIssues': finalArray }).exec(function(err) {
                     // if error occurred
                     if (err) {
                         // log internal error
@@ -186,12 +187,7 @@ exports.logError = function(req, error) {
                 var newError = new ErrorModel({
                     'user': req.user.id,
                     'username': req.user.username,
-                    'userIssues': [
-                        {
-                            'date': rightNow,
-                            'details': errorMessage
-                        }
-                    ]
+                    'userIssues': [newErrorObj]
                 });
 
                 // save the user
@@ -217,17 +213,11 @@ exports.logError = function(req, error) {
                 // holds the final dates
                 var finalArray = foundError.userIssues;
 
-                // create new error
-                var newError = {
-                    'date': rightNow,
-                    'details': errorMessage
-                };
-
                 // push new error
-                finalArray.push(newError);
+                finalArray.push(newErrorObj);
 
                 // update user
-                foundError.update({ 'errors': finalArray }).exec(function(err) {
+                foundError.update({ 'userIssues': finalArray }).exec(function(err) {
                     // if error occurred
                     if (err) {
                         // log internal error
@@ -240,12 +230,7 @@ exports.logError = function(req, error) {
                 var newError = new ErrorModel({
                     'userId': 'genericId',
                     'username': 'genericId',
-                    'userIssues': [
-                        {
-                            'date': rightNow,
-                            'details': errorMessage
-                        }
-                    ]
+                    'userIssues': [newErrorObj]
                 });
 
                 // save the user

@@ -40,7 +40,8 @@ var ErrorSchema = new Schema ({
     userIssues: {
         type: [{
             date: String,
-            details: String
+            message: String,
+            stack: String
         }],
         default: new Array()
     }
