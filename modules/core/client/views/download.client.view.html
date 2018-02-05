@@ -17,8 +17,10 @@
                     <!-- End iOS -->
                     <!-- Begin Android -->
                     <div id="download-header" class="col-md-6">
-                        <img src="/dist/img/android.png" class="img-fluid btn-cursor-pointer w-100" alt="android" ng-click="downloadApp('android')" ng-if="env == 'developmentp'">
-                        <img src="/modules/core/client/img/icons/android.png" class="img-fluid btn-cursor-pointer w-100" alt="android" ng-click="downloadApp('android')" ng-if="env == 'development'">
+                        <form method="get" action="/dist/android/recess.apk">
+                            <input type="image" src="/dist/img/android.png" border="0" alt="Submit" class="img-fluid btn-cursor-pointer w-100" ng-if="env == 'developmentp'" />
+                            <input type="image" src="/modules/core/client/img/icons/android.png" border="0" alt="Submit" class="img-fluid btn-cursor-pointer w-100" ng-if="env == 'development'" />
+                        </form>
                     </div>
                     <!-- End Android -->
                 </div>
